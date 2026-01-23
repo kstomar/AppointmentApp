@@ -105,6 +105,11 @@ gem "phonelib", "~> 0.8"
 # Money handling
 gem "money-rails", "~> 1.15"
 
+# Admin interface
+gem "activeadmin", "~> 3.2"
+gem "sassc-rails"
+gem "sprockets-rails"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri mswin mswin64 mingw x64_mingw ]
   gem "rspec-rails", "~> 6.0"
