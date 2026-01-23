@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+vendor/bundle/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+tmp/
+log/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ruby
+*.gem
+.bundle
+coverage/
+spec/reports/
+
+# Rails
+/api/log/*
+/api/tmp/*
+/api/storage/*
+!/api/log/.keep
+!/api/tmp/.keep
+!/api/storage/.keep
+
+# Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
