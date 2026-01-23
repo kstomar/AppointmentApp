@@ -1,9 +1,0 @@
-{
-  "id": "card_7EZLhWkDt05n7V",
-  "entity": "card",
-  "name": "Fake customer name",
-  "last4": "4321",
-  "network": "Visa",
-  "type": "debit",
-  "international": false
-}

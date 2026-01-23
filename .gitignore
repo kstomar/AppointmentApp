@@ -28,6 +28,7 @@ Thumbs.db
 .bundle
 coverage/
 spec/reports/
+vendor/bundle/
 
 # Rails
 /api/log/*
