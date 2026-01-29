@@ -10,7 +10,6 @@ class User < ApplicationRecord
   ROLES = %w[super_admin business_admin staff front_desk client].freeze
   STATUSES = %w[active inactive suspended pending].freeze
 
-  belongs_to :tenant
   has_many :businesses, foreign_key: :owner_id, dependent: :nullify, inverse_of: :owner
   has_many :staff_members, dependent: :destroy
   has_many :bookings, foreign_key: :client_id, dependent: :nullify, inverse_of: :client
@@ -24,9 +23,9 @@ class User < ApplicationRecord
   has_encrypted :ssn
   blind_index :ssn
 
-  validates :email, presence: true, 
-                    format: { with: URI::MailTo::EMAIL_REGEXP },
-                    uniqueness: { scope: :tenant_id, case_sensitive: false }
+    validates :email, presence: true, 
+                      format: { with: URI::MailTo::EMAIL_REGEXP },
+                      uniqueness: { case_sensitive: false }
   validates :first_name, presence: true, length: { maximum: 100 }
   validates :last_name, presence: true, length: { maximum: 100 }
   validates :role, presence: true, inclusion: { in: ROLES }
@@ -80,9 +79,9 @@ class User < ApplicationRecord
     status == 'active'
   end
 
-  def effective_timezone
-    timezone.presence || tenant&.timezone || 'UTC'
-  end
+    def effective_timezone
+      timezone.presence || 'UTC'
+    end
 
   private
 

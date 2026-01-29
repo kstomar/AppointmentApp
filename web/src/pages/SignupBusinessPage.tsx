@@ -23,17 +23,16 @@ export function SignupBusinessPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    businessName: '',
-    subdomain: '',
-    industry: 'other',
-  });
+    const [formData, setFormData] = useState({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+      businessName: '',
+      industry: 'other',
+    });
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -49,29 +48,23 @@ export function SignupBusinessPage() {
       return;
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
+        if (formData.password.length < 8) {
+          setError('Password must be at least 8 characters');
+          return;
+        }
 
-    if (formData.subdomain.length < 3) {
-      setError('Business URL must be at least 3 characters');
-      return;
-    }
-
-    setIsLoading(true);
+        setIsLoading(true);
     try {
-      await api.signUpBusiness({
-        email: formData.email,
-        password: formData.password,
-        password_confirmation: formData.confirmPassword,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone: formData.phone || undefined,
-        business_name: formData.businessName,
-        subdomain: formData.subdomain,
-        industry: formData.industry,
-      });
+            await api.signUpBusiness({
+              email: formData.email,
+              password: formData.password,
+              password_confirmation: formData.confirmPassword,
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              phone: formData.phone || undefined,
+              business_name: formData.businessName,
+              industry: formData.industry,
+            });
       navigate('/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
@@ -101,36 +94,19 @@ export function SignupBusinessPage() {
               </Alert>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="businessName">Business Name</Label>
-              <Input
-                id="businessName"
-                value={formData.businessName}
-                onChange={(e) => handleChange('businessName', e.target.value)}
-                placeholder="My Awesome Business"
-                required
-              />
-            </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="businessName">Business Name</Label>
+                          <Input
+                            id="businessName"
+                            value={formData.businessName}
+                            onChange={(e) => handleChange('businessName', e.target.value)}
+                            placeholder="My Awesome Business"
+                            required
+                          />
+                        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="subdomain">Business URL</Label>
-              <div className="flex items-center">
-                <Input
-                  id="subdomain"
-                  value={formData.subdomain}
-                  onChange={(e) => handleChange('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="my-business"
-                  className="rounded-r-none"
-                  required
-                />
-                <span className="px-3 py-2 bg-muted border border-l-0 rounded-r-md text-sm text-muted-foreground">
-                  .bookings.app
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="industry">Industry</Label>
+                        <div className="space-y-2">
+                          <Label htmlFor="industry">Industry</Label>
               <select
                 id="industry"
                 value={formData.industry}

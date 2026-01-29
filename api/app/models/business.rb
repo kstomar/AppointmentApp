@@ -6,7 +6,6 @@ class Business < ApplicationRecord
   INDUSTRIES = %w[healthcare beauty wellness fitness home_services professional_services education other].freeze
   STATUSES = %w[active inactive suspended].freeze
 
-  belongs_to :tenant
   belongs_to :owner, class_name: 'User', inverse_of: :businesses
   has_many :locations, dependent: :destroy
   has_many :services, dependent: :destroy
@@ -22,10 +21,10 @@ class Business < ApplicationRecord
   has_many :waitlist_entries, dependent: :destroy
 
   validates :name, presence: true, length: { maximum: 255 }
-  validates :slug, presence: true,
-                   uniqueness: { scope: :tenant_id, case_sensitive: false },
-                   format: { with: /\A[a-z0-9\-]+\z/, message: 'must be lowercase alphanumeric with hyphens' },
-                   length: { minimum: 3, maximum: 100 }
+    validates :slug, presence: true,
+                     uniqueness: { case_sensitive: false },
+                     format: { with: /\A[a-z0-9\-]+\z/, message: 'must be lowercase alphanumeric with hyphens' },
+                     length: { minimum: 3, maximum: 100 }
   validates :industry, presence: true, inclusion: { in: INDUSTRIES }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :timezone, presence: true
@@ -48,9 +47,9 @@ class Business < ApplicationRecord
     locations.find_by(is_primary: true) || locations.first
   end
 
-  def booking_url
-    "#{tenant.subdomain}.#{Rails.application.config.app_domain}/#{slug}/book"
-  end
+    def booking_url
+      "#{Rails.application.config.app_domain}/#{slug}/book"
+    end
 
   def can_accept_bookings?
     active? && services.active.exists? && staff_members.bookable.exists?
@@ -73,9 +72,9 @@ class Business < ApplicationRecord
     self.slug = base_slug
     
     counter = 1
-    while Business.exists?(tenant_id: tenant_id, slug: slug)
-      self.slug = "#{base_slug}-#{counter}"
-      counter += 1
-    end
+        while Business.exists?(slug: slug)
+          self.slug = "#{base_slug}-#{counter}"
+          counter += 1
+        end
   end
 end

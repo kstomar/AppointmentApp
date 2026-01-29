@@ -2,10 +2,9 @@ module Tenantable
   extend ActiveSupport::Concern
 
   included do
-    belongs_to :tenant
+    belongs_to :tenant, optional: true
     
-    validates :tenant, presence: true
-    
-    default_scope { where(tenant_id: ActsAsTenant.current_tenant&.id) if ActsAsTenant.current_tenant }
+    # Tenant is now optional - no validation required
+    # No default scope - all records are accessible globally
   end
 end

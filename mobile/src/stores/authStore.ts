@@ -12,17 +12,16 @@ interface AuthStore extends AuthState {
     lastName: string;
     phone?: string;
   }) => Promise<void>;
-  signUpBusiness: (data: {
-    email: string;
-    password: string;
-    password_confirmation: string;
-    first_name: string;
-    last_name: string;
-    phone?: string;
-    business_name: string;
-    subdomain: string;
-    industry?: string;
-  }) => Promise<void>;
+    signUpBusiness: (data: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      first_name: string;
+      last_name: string;
+      phone?: string;
+      business_name: string;
+      industry?: string;
+    }) => Promise<void>;
     signUpClient: (data: {
       email: string;
       password: string;

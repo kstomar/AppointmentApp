@@ -33,7 +33,6 @@ const INDUSTRIES = [
 
 export function SignUpBusinessScreen({ navigation }: Props) {
   const [businessName, setBusinessName] = useState('');
-  const [subdomain, setSubdomain] = useState('');
   const [industry, setIndustry] = useState('other');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -44,18 +43,9 @@ export function SignUpBusinessScreen({ navigation }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const signUpBusiness = useAuthStore((state) => state.signUpBusiness);
 
-  const handleSubdomainChange = (text: string) => {
-    setSubdomain(text.toLowerCase().replace(/[^a-z0-9-]/g, ''));
-  };
-
   const handleSignUp = async () => {
-    if (!businessName || !subdomain || !firstName || !lastName || !email || !password) {
+    if (!businessName || !firstName || !lastName || !email || !password) {
       Alert.alert('Error', 'Please fill in all required fields');
-      return;
-    }
-
-    if (subdomain.length < 3) {
-      Alert.alert('Error', 'Business URL must be at least 3 characters');
       return;
     }
 
@@ -73,7 +63,6 @@ export function SignUpBusinessScreen({ navigation }: Props) {
     try {
       await signUpBusiness({
         business_name: businessName,
-        subdomain,
         industry,
         first_name: firstName,
         last_name: lastName,
@@ -101,32 +90,18 @@ export function SignUpBusinessScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Business Name *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="My Awesome Business"
-              value={businessName}
-              onChangeText={setBusinessName}
-            />
-          </View>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Business Name *</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="My Awesome Business"
+                        value={businessName}
+                        onChangeText={setBusinessName}
+                      />
+                    </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Business URL *</Text>
-            <View style={styles.urlContainer}>
-              <TextInput
-                style={[styles.input, styles.urlInput]}
-                placeholder="my-business"
-                value={subdomain}
-                onChangeText={handleSubdomainChange}
-                autoCapitalize="none"
-              />
-              <Text style={styles.urlSuffix}>.bookings.app</Text>
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Industry</Text>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Industry</Text>
             <View style={styles.industryContainer}>
               {INDUSTRIES.map((ind) => (
                 <TouchableOpacity
@@ -291,36 +266,15 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9fafb',
-  },
-  urlContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  urlInput: {
-    flex: 1,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  urlSuffix: {
-    backgroundColor: '#e5e7eb',
-    paddingHorizontal: 12,
-    paddingVertical: 13,
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderColor: '#d1d5db',
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  industryContainer: {
+    input: {
+      borderWidth: 1,
+      borderColor: '#d1d5db',
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      backgroundColor: '#f9fafb',
+    },
+    industryContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
