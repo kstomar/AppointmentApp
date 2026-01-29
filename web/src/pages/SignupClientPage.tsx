@@ -8,6 +8,17 @@ import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import api from '../services/api';
 
+const INDUSTRIES = [
+  { value: 'healthcare', label: 'Healthcare / Medical' },
+  { value: 'beauty', label: 'Beauty / Salon' },
+  { value: 'wellness', label: 'Wellness / Spa' },
+  { value: 'fitness', label: 'Fitness / Gym' },
+  { value: 'home_services', label: 'Home Services' },
+  { value: 'professional_services', label: 'Professional Services' },
+  { value: 'education', label: 'Education / Tutoring' },
+  { value: 'other', label: 'Other' },
+];
+
 export function SignupClientPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +30,7 @@ export function SignupClientPage() {
     phone: '',
     password: '',
     confirmPassword: '',
+    industry: 'other',
   });
 
   const handleChange = (field: string, value: string) => {
@@ -42,14 +54,15 @@ export function SignupClientPage() {
 
     setIsLoading(true);
     try {
-      await api.signUpClient({
-        email: formData.email,
-        password: formData.password,
-        password_confirmation: formData.confirmPassword,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone: formData.phone || undefined,
-      });
+            await api.signUpClient({
+              email: formData.email,
+              password: formData.password,
+              password_confirmation: formData.confirmPassword,
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              phone: formData.phone || undefined,
+              industry: formData.industry,
+            });
       navigate('/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
@@ -114,19 +127,35 @@ export function SignupClientPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="+1 234 567 8900"
-              />
-            </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone (optional)</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => handleChange('phone', e.target.value)}
+                            placeholder="+1 234 567 8900"
+                          />
+                        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+                        <div className="space-y-2">
+                          <Label htmlFor="industry">What services are you looking for?</Label>
+                          <select
+                            id="industry"
+                            value={formData.industry}
+                            onChange={(e) => handleChange('industry', e.target.value)}
+                            className="w-full px-3 py-2 border rounded-md bg-background"
+                          >
+                            {INDUSTRIES.map((ind) => (
+                              <option key={ind.value} value={ind.value}>
+                                {ind.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"

@@ -23,14 +23,15 @@ interface AuthStore extends AuthState {
     subdomain: string;
     industry?: string;
   }) => Promise<void>;
-  signUpClient: (data: {
-    email: string;
-    password: string;
-    password_confirmation: string;
-    first_name: string;
-    last_name: string;
-    phone?: string;
-  }) => Promise<void>;
+    signUpClient: (data: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      first_name: string;
+      last_name: string;
+      phone?: string;
+      industry?: string;
+    }) => Promise<void>;
   signOut: () => Promise<void>;
   loadUser: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;

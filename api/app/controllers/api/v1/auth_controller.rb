@@ -88,19 +88,22 @@ module Api
         render_error(e.record.errors.full_messages.join(', '), status: :unprocessable_entity)
       end
 
-      # Client Registration - registers a client to book appointments
-      def sign_up_client
-        # For clients, we use a default public tenant or find by subdomain
-        tenant = if params[:subdomain].present?
-          Tenant.find_by!(subdomain: params[:subdomain]&.downcase)
-        else
-                    Tenant.find_or_create_by!(subdomain: 'public') do |t|
-                      t.name = 'Public'
-                      t.industry = 'other'
-                      t.status = 'active'
-                      t.plan = 'free'
-                    end
-        end
+            # Client Registration - registers a client to book appointments
+            def sign_up_client
+              # For clients, we use a default public tenant or find by subdomain
+              # Industry can be specified to categorize the client's interests
+              industry = params[:industry].presence || 'other'
+        
+              tenant = if params[:subdomain].present?
+                Tenant.find_by!(subdomain: params[:subdomain]&.downcase)
+              else
+                          Tenant.find_or_create_by!(subdomain: 'public') do |t|
+                            t.name = 'Public'
+                            t.industry = industry
+                            t.status = 'active'
+                            t.plan = 'free'
+                          end
+              end
 
         ActsAsTenant.with_tenant(tenant) do
           user = User.new(

@@ -71,17 +71,18 @@ class ApiService {
       return response.data;
     }
 
-    async signUpClient(data: {
-      email: string;
-      password: string;
-      password_confirmation: string;
-      first_name: string;
-      last_name: string;
-      phone?: string;
-    }): Promise<{ user: User; token: string }> {
-      const response = await this.client.post('/auth/sign_up/client', data);
-      return response.data;
-    }
+        async signUpClient(data: {
+          email: string;
+          password: string;
+          password_confirmation: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          industry?: string;
+        }): Promise<{ user: User; token: string }> {
+          const response = await this.client.post('/auth/sign_up/client', data);
+          return response.data;
+        }
 
     async signIn(email: string, password: string): Promise<{ user: User; token: string }> {
       const response = await this.client.post('/auth/sign_in', { email, password });

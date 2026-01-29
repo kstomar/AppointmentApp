@@ -20,6 +20,17 @@ interface Props {
   navigation: SignUpClientScreenNavigationProp;
 }
 
+const INDUSTRIES = [
+  { value: 'healthcare', label: 'Healthcare / Medical' },
+  { value: 'beauty', label: 'Beauty / Salon' },
+  { value: 'wellness', label: 'Wellness / Spa' },
+  { value: 'fitness', label: 'Fitness / Gym' },
+  { value: 'home_services', label: 'Home Services' },
+  { value: 'professional_services', label: 'Professional Services' },
+  { value: 'education', label: 'Education / Tutoring' },
+  { value: 'other', label: 'Other' },
+];
+
 export function SignUpClientScreen({ navigation }: Props) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -27,6 +38,7 @@ export function SignUpClientScreen({ navigation }: Props) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [industry, setIndustry] = useState('other');
   const [isLoading, setIsLoading] = useState(false);
   const signUpClient = useAuthStore((state) => state.signUpClient);
 
@@ -48,14 +60,15 @@ export function SignUpClientScreen({ navigation }: Props) {
 
     setIsLoading(true);
     try {
-      await signUpClient({
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: phone || undefined,
-        password,
-        password_confirmation: confirmPassword,
-      });
+            await signUpClient({
+              first_name: firstName,
+              last_name: lastName,
+              email,
+              phone: phone || undefined,
+              password,
+              password_confirmation: confirmPassword,
+              industry,
+            });
     } catch (error: any) {
       Alert.alert('Sign Up Failed', error.response?.data?.message || 'Something went wrong');
     } finally {
@@ -112,19 +125,44 @@ export function SignUpClientScreen({ navigation }: Props) {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your phone number"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-            />
-          </View>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Phone</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter your phone number"
+                        value={phone}
+                        onChangeText={setPhone}
+                        keyboardType="phone-pad"
+                      />
+                    </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password *</Text>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>What services are you looking for?</Text>
+                      <View style={styles.industryContainer}>
+                        {INDUSTRIES.map((ind) => (
+                          <TouchableOpacity
+                            key={ind.value}
+                            style={[
+                              styles.industryOption,
+                              industry === ind.value && styles.industryOptionSelected,
+                            ]}
+                            onPress={() => setIndustry(ind.value)}
+                          >
+                            <Text
+                              style={[
+                                styles.industryText,
+                                industry === ind.value && styles.industryTextSelected,
+                              ]}
+                            >
+                              {ind.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Password *</Text>
             <TextInput
               style={styles.input}
               placeholder="Create a password"
@@ -216,15 +254,40 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9fafb',
-  },
-  button: {
+    input: {
+      borderWidth: 1,
+      borderColor: '#d1d5db',
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      backgroundColor: '#f9fafb',
+    },
+    industryContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    industryOption: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: '#d1d5db',
+      backgroundColor: '#f9fafb',
+    },
+    industryOptionSelected: {
+      borderColor: '#10b981',
+      backgroundColor: '#ecfdf5',
+    },
+    industryText: {
+      fontSize: 13,
+      color: '#6b7280',
+    },
+    industryTextSelected: {
+      color: '#10b981',
+      fontWeight: '500',
+    },
+    button: {
     backgroundColor: '#10b981',
     borderRadius: 8,
     padding: 16,

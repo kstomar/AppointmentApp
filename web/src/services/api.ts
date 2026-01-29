@@ -60,15 +60,16 @@ class ApiService {
       return response.data;
     }
 
-    async signUpClient(data: {
-      email: string;
-      password: string;
-      password_confirmation: string;
-      first_name: string;
-      last_name: string;
-      phone?: string;
-      subdomain?: string;
-    }) {
+        async signUpClient(data: {
+          email: string;
+          password: string;
+          password_confirmation: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          subdomain?: string;
+          industry?: string;
+        }) {
       const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_up/client', data);
       if (response.data.data?.token) {
         localStorage.setItem('auth_token', response.data.data.token);
