@@ -3,7 +3,6 @@ class AuditLog < ApplicationRecord
 
   ACTIONS = %w[create update destroy login logout view export].freeze
 
-  belongs_to :tenant
   belongs_to :user, optional: true
 
   validates :action, presence: true, inclusion: { in: ACTIONS }
@@ -16,7 +15,6 @@ class AuditLog < ApplicationRecord
 
   def self.log(action:, auditable: nil, user: nil, changes: {}, metadata: {}, request: nil)
     create!(
-      tenant_id: ActsAsTenant.current_tenant&.id,
       user_id: user&.id,
       auditable_type: auditable&.class&.name,
       auditable_id: auditable&.id,
