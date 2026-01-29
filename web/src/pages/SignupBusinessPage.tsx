@@ -11,11 +11,12 @@ import api from '../services/api';
 const INDUSTRIES = [
   { value: 'healthcare', label: 'Healthcare / Medical' },
   { value: 'beauty', label: 'Beauty / Salon' },
-  { value: 'fitness', label: 'Fitness / Wellness' },
-  { value: 'professional', label: 'Professional Services' },
+  { value: 'wellness', label: 'Wellness / Spa' },
+  { value: 'fitness', label: 'Fitness / Gym' },
   { value: 'home_services', label: 'Home Services' },
+  { value: 'professional_services', label: 'Professional Services' },
   { value: 'education', label: 'Education / Tutoring' },
-  { value: 'general', label: 'Other' },
+  { value: 'other', label: 'Other' },
 ];
 
 export function SignupBusinessPage() {
@@ -31,7 +32,7 @@ export function SignupBusinessPage() {
     confirmPassword: '',
     businessName: '',
     subdomain: '',
-    industry: 'general',
+    industry: 'other',
   });
 
   const handleChange = (field: string, value: string) => {

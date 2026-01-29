@@ -28,7 +28,7 @@ module Api
           tenant = Tenant.create!(
             name: params[:business_name],
             subdomain: params[:subdomain]&.downcase&.strip,
-            industry: params[:industry] || 'general',
+            industry: params[:industry] || 'other',
             status: 'active',
             plan: 'trial'
           )
@@ -57,7 +57,7 @@ module Api
             business = Business.create!(
               name: params[:business_name],
               slug: params[:subdomain]&.downcase&.strip,
-              industry: params[:industry] || 'general',
+              industry: params[:industry] || 'other',
               email: params[:email],
               phone: params[:phone],
               status: 'active',
@@ -94,12 +94,12 @@ module Api
         tenant = if params[:subdomain].present?
           Tenant.find_by!(subdomain: params[:subdomain]&.downcase)
         else
-          Tenant.find_or_create_by!(subdomain: 'public') do |t|
-            t.name = 'Public'
-            t.industry = 'general'
-            t.status = 'active'
-            t.plan = 'free'
-          end
+                    Tenant.find_or_create_by!(subdomain: 'public') do |t|
+                      t.name = 'Public'
+                      t.industry = 'other'
+                      t.status = 'active'
+                      t.plan = 'free'
+                    end
         end
 
         ActsAsTenant.with_tenant(tenant) do
@@ -216,20 +216,20 @@ module Api
         params.permit(:first_name, :last_name, :phone, :timezone, :locale, :avatar_url, preferences: {})
       end
 
-      def find_or_create_tenant
-        if params[:tenant_id].present?
-          Tenant.find(params[:tenant_id])
-        elsif params[:subdomain].present?
-          Tenant.find_or_create_by!(subdomain: params[:subdomain]) do |t|
-            t.name = params[:business_name] || params[:subdomain].titleize
-            t.industry = params[:industry] || 'general'
-            t.status = 'active'
-            t.plan = 'trial'
-          end
-        else
-          raise ActionController::ParameterMissing, :subdomain
-        end
-      end
+            def find_or_create_tenant
+              if params[:tenant_id].present?
+                Tenant.find(params[:tenant_id])
+              elsif params[:subdomain].present?
+                Tenant.find_or_create_by!(subdomain: params[:subdomain]) do |t|
+                  t.name = params[:business_name] || params[:subdomain].titleize
+                  t.industry = params[:industry] || 'other'
+                  t.status = 'active'
+                  t.plan = 'trial'
+                end
+              else
+                raise ActionController::ParameterMissing, :subdomain
+              end
+            end
 
       def generate_jwt_token(user)
         Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first

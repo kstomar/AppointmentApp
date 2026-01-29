@@ -23,17 +23,18 @@ interface Props {
 const INDUSTRIES = [
   { value: 'healthcare', label: 'Healthcare / Medical' },
   { value: 'beauty', label: 'Beauty / Salon' },
-  { value: 'fitness', label: 'Fitness / Wellness' },
-  { value: 'professional', label: 'Professional Services' },
+  { value: 'wellness', label: 'Wellness / Spa' },
+  { value: 'fitness', label: 'Fitness / Gym' },
   { value: 'home_services', label: 'Home Services' },
+  { value: 'professional_services', label: 'Professional Services' },
   { value: 'education', label: 'Education / Tutoring' },
-  { value: 'general', label: 'Other' },
+  { value: 'other', label: 'Other' },
 ];
 
 export function SignUpBusinessScreen({ navigation }: Props) {
   const [businessName, setBusinessName] = useState('');
   const [subdomain, setSubdomain] = useState('');
-  const [industry, setIndustry] = useState('general');
+  const [industry, setIndustry] = useState('other');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
