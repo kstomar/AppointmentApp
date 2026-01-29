@@ -9,6 +9,9 @@ import { useAuthStore } from '../stores/authStore';
 // Auth Screens
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SignUpScreen } from '../screens/auth/SignUpScreen';
+import { SignUpSelectScreen } from '../screens/auth/SignUpSelectScreen';
+import { SignUpBusinessScreen } from '../screens/auth/SignUpBusinessScreen';
+import { SignUpClientScreen } from '../screens/auth/SignUpClientScreen';
 
 // Main Screens
 import { HomeScreen } from '../screens/HomeScreen';
@@ -29,6 +32,9 @@ export type RootStackParamList = {
   Main: undefined;
   Login: undefined;
   SignUp: undefined;
+  SignUpSelect: undefined;
+  SignUpBusiness: undefined;
+  SignUpClient: undefined;
   SelectService: { businessSlug: string };
   SelectStaff: { businessSlug: string };
   SelectDateTime: { businessSlug: string };
@@ -51,6 +57,9 @@ function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="SignUpSelect" component={SignUpSelectScreen} />
+      <Stack.Screen name="SignUpBusiness" component={SignUpBusinessScreen} />
+      <Stack.Screen name="SignUpClient" component={SignUpClientScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
     </Stack.Navigator>
   );

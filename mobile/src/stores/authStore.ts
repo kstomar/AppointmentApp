@@ -12,6 +12,25 @@ interface AuthStore extends AuthState {
     lastName: string;
     phone?: string;
   }) => Promise<void>;
+  signUpBusiness: (data: {
+    email: string;
+    password: string;
+    password_confirmation: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+    business_name: string;
+    subdomain: string;
+    industry?: string;
+  }) => Promise<void>;
+  signUpClient: (data: {
+    email: string;
+    password: string;
+    password_confirmation: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+  }) => Promise<void>;
   signOut: () => Promise<void>;
   loadUser: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -33,17 +52,37 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
-  signUp: async (data) => {
-    try {
-      const { user, token } = await api.signUp(data);
-      await AsyncStorage.setItem('auth_token', token);
-      set({ user, token, isAuthenticated: true });
-    } catch (error) {
-      throw error;
-    }
-  },
+    signUp: async (data) => {
+      try {
+        const { user, token } = await api.signUp(data);
+        await AsyncStorage.setItem('auth_token', token);
+        set({ user, token, isAuthenticated: true });
+      } catch (error) {
+        throw error;
+      }
+    },
 
-  signOut: async () => {
+    signUpBusiness: async (data) => {
+      try {
+        const { user, token } = await api.signUpBusiness(data);
+        await AsyncStorage.setItem('auth_token', token);
+        set({ user, token, isAuthenticated: true });
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    signUpClient: async (data) => {
+      try {
+        const { user, token } = await api.signUpClient(data);
+        await AsyncStorage.setItem('auth_token', token);
+        set({ user, token, isAuthenticated: true });
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    signOut: async () => {
     try {
       await api.signOut();
     } catch (error) {

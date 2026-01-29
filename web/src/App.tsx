@@ -4,6 +4,9 @@ import { Toaster } from './components/ui/toaster';
 import { useAuthStore } from './stores/authStore';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { SignupSelectPage } from './pages/SignupSelectPage';
+import { SignupBusinessPage } from './pages/SignupBusinessPage';
+import { SignupClientPage } from './pages/SignupClientPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { PublicBookingPage } from './pages/PublicBookingPage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
@@ -29,10 +32,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/book/:businessSlug" element={<PublicBookingPage />} />
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupSelectPage />} />
+                  <Route path="/signup/business" element={<SignupBusinessPage />} />
+                  <Route path="/signup/client" element={<SignupClientPage />} />
+                  <Route path="/signup/legacy" element={<SignupPage />} />
+                  <Route path="/book/:businessSlug" element={<PublicBookingPage />} />
           <Route
             path="/dashboard"
             element={

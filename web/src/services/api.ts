@@ -34,13 +34,47 @@ class ApiService {
     );
   }
 
-  async signUp(data: { email: string; password: string; first_name: string; last_name: string; subdomain: string }) {
-    const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_up', data);
-    if (response.data.data?.token) {
-      localStorage.setItem('auth_token', response.data.data.token);
+    async signUp(data: { email: string; password: string; first_name: string; last_name: string; subdomain: string }) {
+      const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_up', data);
+      if (response.data.data?.token) {
+        localStorage.setItem('auth_token', response.data.data.token);
+      }
+      return response.data;
     }
-    return response.data;
-  }
+
+    async signUpBusiness(data: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      first_name: string;
+      last_name: string;
+      phone?: string;
+      business_name: string;
+      subdomain: string;
+      industry?: string;
+    }) {
+      const response = await this.client.post<ApiResponse<{ user: User; business: Business; token: string }>>('/auth/sign_up/business', data);
+      if (response.data.data?.token) {
+        localStorage.setItem('auth_token', response.data.data.token);
+      }
+      return response.data;
+    }
+
+    async signUpClient(data: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      first_name: string;
+      last_name: string;
+      phone?: string;
+      subdomain?: string;
+    }) {
+      const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_up/client', data);
+      if (response.data.data?.token) {
+        localStorage.setItem('auth_token', response.data.data.token);
+      }
+      return response.data;
+    }
 
   async signIn(email: string, password: string) {
     const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_in', { email, password });

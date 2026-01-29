@@ -44,22 +44,49 @@ class ApiService {
     );
   }
 
-  // Auth
-  async signUp(data: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-  }): Promise<{ user: User; token: string }> {
-    const response = await this.client.post('/auth/sign_up', data);
-    return response.data;
-  }
+    // Auth
+    async signUp(data: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone?: string;
+    }): Promise<{ user: User; token: string }> {
+      const response = await this.client.post('/auth/sign_up', data);
+      return response.data;
+    }
 
-  async signIn(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await this.client.post('/auth/sign_in', { email, password });
-    return response.data;
-  }
+    async signUpBusiness(data: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      first_name: string;
+      last_name: string;
+      phone?: string;
+      business_name: string;
+      subdomain: string;
+      industry?: string;
+    }): Promise<{ user: User; business: Business; token: string }> {
+      const response = await this.client.post('/auth/sign_up/business', data);
+      return response.data;
+    }
+
+    async signUpClient(data: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      first_name: string;
+      last_name: string;
+      phone?: string;
+    }): Promise<{ user: User; token: string }> {
+      const response = await this.client.post('/auth/sign_up/client', data);
+      return response.data;
+    }
+
+    async signIn(email: string, password: string): Promise<{ user: User; token: string }> {
+      const response = await this.client.post('/auth/sign_in', { email, password });
+      return response.data;
+    }
 
   async signOut(): Promise<void> {
     await this.client.delete('/auth/sign_out');

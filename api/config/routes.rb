@@ -8,15 +8,17 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      # Authentication
-      post 'auth/sign_up', to: 'auth#sign_up'
-      post 'auth/sign_in', to: 'auth#sign_in'
-      delete 'auth/sign_out', to: 'auth#sign_out'
-      get 'auth/me', to: 'auth#me'
-      patch 'auth/profile', to: 'auth#update_profile'
-      post 'auth/change_password', to: 'auth#change_password'
-      post 'auth/forgot_password', to: 'auth#forgot_password'
-      post 'auth/reset_password', to: 'auth#reset_password'
+            # Authentication
+            post 'auth/sign_up', to: 'auth#sign_up'
+            post 'auth/sign_up/business', to: 'auth#sign_up_business'
+            post 'auth/sign_up/client', to: 'auth#sign_up_client'
+            post 'auth/sign_in', to: 'auth#sign_in'
+            delete 'auth/sign_out', to: 'auth#sign_out'
+            get 'auth/me', to: 'auth#me'
+            patch 'auth/profile', to: 'auth#update_profile'
+            post 'auth/change_password', to: 'auth#change_password'
+            post 'auth/forgot_password', to: 'auth#forgot_password'
+            post 'auth/reset_password', to: 'auth#reset_password'
 
       # Businesses and nested resources
       resources :businesses do

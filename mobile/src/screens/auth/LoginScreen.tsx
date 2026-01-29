@@ -93,12 +93,12 @@ export function LoginScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-            <Text style={styles.linkText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
+                <View style={styles.footer}>
+                  <Text style={styles.footerText}>Don't have an account? </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('SignUpSelect')}>
+                    <Text style={styles.linkText}>Sign Up</Text>
+                  </TouchableOpacity>
+                </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

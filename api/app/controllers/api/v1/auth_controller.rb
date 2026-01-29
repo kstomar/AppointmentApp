@@ -1,9 +1,10 @@
 module Api
   module V1
     class AuthController < BaseController
-      skip_before_action :authenticate_user!, only: [:sign_up, :sign_in, :forgot_password, :reset_password]
-      skip_before_action :set_tenant, only: [:sign_up]
+      skip_before_action :authenticate_user!, only: [:sign_up, :sign_in, :sign_up_business, :sign_up_client, :forgot_password, :reset_password]
+      skip_before_action :set_tenant, only: [:sign_up, :sign_up_business, :sign_up_client]
 
+      # Legacy sign_up endpoint
       def sign_up
         tenant = find_or_create_tenant
         
@@ -18,6 +19,113 @@ module Api
             render_validation_errors(user)
           end
         end
+      end
+
+      # Business Owner Registration - creates tenant, business, and admin user
+      def sign_up_business
+        ActiveRecord::Base.transaction do
+          # Create tenant
+          tenant = Tenant.create!(
+            name: params[:business_name],
+            subdomain: params[:subdomain]&.downcase&.strip,
+            industry: params[:industry] || 'general',
+            status: 'active',
+            plan: 'trial'
+          )
+
+          ActsAsTenant.with_tenant(tenant) do
+            # Create business owner user
+            user = User.new(
+              email: params[:email]&.downcase&.strip,
+              password: params[:password],
+              password_confirmation: params[:password_confirmation],
+              first_name: params[:first_name],
+              last_name: params[:last_name],
+              phone: params[:phone],
+              timezone: params[:timezone] || 'UTC',
+              role: 'business_admin',
+              status: 'active',
+              tenant: tenant
+            )
+
+            unless user.save
+              raise ActiveRecord::Rollback
+              return render_validation_errors(user)
+            end
+
+            # Create business
+            business = Business.create!(
+              name: params[:business_name],
+              slug: params[:subdomain]&.downcase&.strip,
+              industry: params[:industry] || 'general',
+              email: params[:email],
+              phone: params[:phone],
+              status: 'active',
+              owner: user,
+              tenant: tenant,
+              settings: {
+                booking_window_days: 30,
+                min_booking_notice_hours: 1,
+                max_bookings_per_slot: 1,
+                allow_cancellation: true,
+                cancellation_notice_hours: 24
+              }
+            )
+
+            log_audit(action: 'create', auditable: user)
+            log_audit(action: 'create', auditable: business)
+            
+            token = generate_jwt_token(user)
+            render_created({
+              user: user_response(user),
+              business: business_response(business),
+              tenant: tenant_response(tenant),
+              token: token
+            }, message: 'Business account created successfully')
+          end
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        render_error(e.record.errors.full_messages.join(', '), status: :unprocessable_entity)
+      end
+
+      # Client Registration - registers a client to book appointments
+      def sign_up_client
+        # For clients, we use a default public tenant or find by subdomain
+        tenant = if params[:subdomain].present?
+          Tenant.find_by!(subdomain: params[:subdomain]&.downcase)
+        else
+          Tenant.find_or_create_by!(subdomain: 'public') do |t|
+            t.name = 'Public'
+            t.industry = 'general'
+            t.status = 'active'
+            t.plan = 'free'
+          end
+        end
+
+        ActsAsTenant.with_tenant(tenant) do
+          user = User.new(
+            email: params[:email]&.downcase&.strip,
+            password: params[:password],
+            password_confirmation: params[:password_confirmation],
+            first_name: params[:first_name],
+            last_name: params[:last_name],
+            phone: params[:phone],
+            timezone: params[:timezone] || 'UTC',
+            role: 'client',
+            status: 'active',
+            tenant: tenant
+          )
+
+          if user.save
+            log_audit(action: 'create', auditable: user)
+            token = generate_jwt_token(user)
+            render_created({ user: user_response(user), token: token }, message: 'Client account created successfully')
+          else
+            render_validation_errors(user)
+          end
+        end
+      rescue ActiveRecord::RecordNotFound
+        render_error('Business not found', status: :not_found)
       end
 
       def sign_in
@@ -141,6 +249,28 @@ module Api
           avatar_url: user.avatar_url,
           preferences: user.preferences,
           tenant_id: user.tenant_id
+        }
+      end
+
+      def business_response(business)
+        {
+          id: business.id,
+          name: business.name,
+          slug: business.slug,
+          industry: business.industry,
+          email: business.email,
+          phone: business.phone,
+          status: business.status
+        }
+      end
+
+      def tenant_response(tenant)
+        {
+          id: tenant.id,
+          name: tenant.name,
+          subdomain: tenant.subdomain,
+          industry: tenant.industry,
+          plan: tenant.plan
         }
       end
     end
