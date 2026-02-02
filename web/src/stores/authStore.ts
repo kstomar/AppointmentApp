@@ -26,11 +26,11 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await api.signIn(email, password);
-          if (response.success && response.data) {
-            set({ user: response.data.user, isAuthenticated: true, isLoading: false });
+          const data = await api.signIn(email, password);
+          if (data?.user) {
+            set({ user: data.user, isAuthenticated: true, isLoading: false });
           } else {
-            set({ error: response.error || 'Sign in failed', isLoading: false });
+            set({ error: 'Sign in failed', isLoading: false });
           }
         } catch (err) {
           set({ error: 'Sign in failed', isLoading: false });
@@ -40,11 +40,11 @@ export const useAuthStore = create<AuthState>()(
       signUp: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await api.signUp(data);
-          if (response.success && response.data) {
-            set({ user: response.data.user, isAuthenticated: true, isLoading: false });
+          const result = await api.signUp(data);
+          if (result?.user) {
+            set({ user: result.user, isAuthenticated: true, isLoading: false });
           } else {
-            set({ error: response.error || 'Sign up failed', isLoading: false });
+            set({ error: 'Sign up failed', isLoading: false });
           }
         } catch (err) {
           set({ error: 'Sign up failed', isLoading: false });
@@ -62,9 +62,9 @@ export const useAuthStore = create<AuthState>()(
       fetchUser: async () => {
         set({ isLoading: true });
         try {
-          const response = await api.getCurrentUser();
-          if (response.success && response.data) {
-            set({ user: response.data, isAuthenticated: true, isLoading: false });
+          const user = await api.getCurrentUser();
+          if (user) {
+            set({ user, isAuthenticated: true, isLoading: false });
           } else {
             set({ user: null, isAuthenticated: false, isLoading: false });
           }

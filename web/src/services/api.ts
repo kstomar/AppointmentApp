@@ -36,10 +36,11 @@ class ApiService {
 
     async signUp(data: { email: string; password: string; first_name: string; last_name: string; subdomain: string }) {
       const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_up', data);
-      if (response.data.data?.token) {
-        localStorage.setItem('auth_token', response.data.data.token);
+      const result = response.data.data;
+      if (result?.token) {
+        localStorage.setItem('auth_token', result.token);
       }
-      return response.data;
+      return result;
     }
 
         async signUpBusiness(data: {
@@ -53,10 +54,11 @@ class ApiService {
           industry?: string;
         }) {
       const response = await this.client.post<ApiResponse<{ user: User; business: Business; token: string }>>('/auth/sign_up/business', data);
-      if (response.data.data?.token) {
-        localStorage.setItem('auth_token', response.data.data.token);
+      const result = response.data.data;
+      if (result?.token) {
+        localStorage.setItem('auth_token', result.token);
       }
-      return response.data;
+      return result;
     }
 
         async signUpClient(data: {
@@ -70,18 +72,20 @@ class ApiService {
           industry?: string;
         }) {
       const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_up/client', data);
-      if (response.data.data?.token) {
-        localStorage.setItem('auth_token', response.data.data.token);
+      const result = response.data.data;
+      if (result?.token) {
+        localStorage.setItem('auth_token', result.token);
       }
-      return response.data;
+      return result;
     }
 
   async signIn(email: string, password: string) {
     const response = await this.client.post<ApiResponse<{ user: User; token: string }>>('/auth/sign_in', { email, password });
-    if (response.data.data?.token) {
-      localStorage.setItem('auth_token', response.data.data.token);
+    const data = response.data.data;
+    if (data?.token) {
+      localStorage.setItem('auth_token', data.token);
     }
-    return response.data;
+    return data;
   }
 
   async signOut() {
@@ -91,89 +95,89 @@ class ApiService {
 
   async getCurrentUser() {
     const response = await this.client.get<ApiResponse<User>>('/auth/me');
-    return response.data;
+    return response.data.data;
   }
 
   async getBusinesses() {
     const response = await this.client.get<ApiResponse<Business[]>>('/businesses');
-    return response.data;
+    return response.data.data;
   }
 
   async getBusiness(id: string) {
     const response = await this.client.get<ApiResponse<Business>>(`/businesses/${id}`);
-    return response.data;
+    return response.data.data;
   }
 
   async createBusiness(data: Partial<Business>) {
     const response = await this.client.post<ApiResponse<Business>>('/businesses', data);
-    return response.data;
+    return response.data.data;
   }
 
   async updateBusiness(id: string, data: Partial<Business>) {
     const response = await this.client.patch<ApiResponse<Business>>(`/businesses/${id}`, data);
-    return response.data;
+    return response.data.data;
   }
 
   async getLocations(businessId: string) {
     const response = await this.client.get<ApiResponse<Location[]>>(`/businesses/${businessId}/locations`);
-    return response.data;
+    return response.data.data;
   }
 
   async getServices(businessId: string) {
     const response = await this.client.get<ApiResponse<Service[]>>(`/businesses/${businessId}/services`);
-    return response.data;
+    return response.data.data;
   }
 
   async getStaffMembers(businessId: string) {
     const response = await this.client.get<ApiResponse<StaffMember[]>>(`/businesses/${businessId}/staff_members`);
-    return response.data;
+    return response.data.data;
   }
 
   async getAvailability(businessId: string, serviceId: string, params?: { staff_member_id?: string; location_id?: string; start_date?: string; end_date?: string }) {
     const response = await this.client.get<ApiResponse<{ slots: AvailabilitySlot[] }>>(`/businesses/${businessId}/availability`, {
       params: { service_id: serviceId, ...params },
     });
-    return response.data;
+    return response.data.data;
   }
 
   async getBookings(params?: { business_id?: string; status?: string; start_date?: string; end_date?: string }) {
     const response = await this.client.get<ApiResponse<Booking[]>>('/bookings', { params });
-    return response.data;
+    return response.data.data;
   }
 
   async getBooking(id: string) {
     const response = await this.client.get<ApiResponse<Booking>>(`/bookings/${id}`);
-    return response.data;
+    return response.data.data;
   }
 
   async createBooking(data: { business_id: string; service_id: string; start_at: string; staff_member_id?: string; location_id?: string; notes?: string }) {
     const response = await this.client.post<ApiResponse<Booking>>('/bookings', data);
-    return response.data;
+    return response.data.data;
   }
 
   async cancelBooking(id: string, reason?: string) {
     const response = await this.client.post<ApiResponse<Booking>>(`/bookings/${id}/cancel`, { reason });
-    return response.data;
+    return response.data.data;
   }
 
   async rescheduleBooking(id: string, newStartAt: string, reason?: string) {
     const response = await this.client.post<ApiResponse<Booking>>(`/bookings/${id}/reschedule`, { new_start_at: newStartAt, reason });
-    return response.data;
+    return response.data.data;
   }
 
   async getNotifications() {
     const response = await this.client.get<ApiResponse<Notification[]>>('/notifications');
-    return response.data;
+    return response.data.data;
   }
 
   async markNotificationRead(id: string) {
     const response = await this.client.post<ApiResponse<Notification>>(`/notifications/${id}/mark_read`);
-    return response.data;
+    return response.data.data;
   }
 
   async getUnreadCount() {
     const response = await this.client.get<ApiResponse<{ count: number }>>('/notifications/unread_count');
-    return response.data;
+    return response.data.data;
   }
 }
 
