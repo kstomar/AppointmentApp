@@ -18,53 +18,50 @@ module Api
 
       # Business Owner Registration - creates business and admin user
       def sign_up_business
-        ActiveRecord::Base.transaction do
-          # Create business owner user
-          user = User.new(
-            email: params[:email]&.downcase&.strip,
-            password: params[:password],
-            password_confirmation: params[:password_confirmation],
-            first_name: params[:first_name],
-            last_name: params[:last_name],
-            phone: params[:phone],
-            timezone: params[:timezone] || 'UTC',
-            role: 'business_admin',
-            status: 'active'
-          )
+        # Create business owner user
+        user = User.new(
+          email: params[:email]&.downcase&.strip,
+          password: params[:password],
+          password_confirmation: params[:password_confirmation],
+          first_name: params[:first_name],
+          last_name: params[:last_name],
+          phone: params[:phone],
+          timezone: params[:timezone] || 'UTC',
+          role: 'business_admin',
+          status: 'active'
+        )
 
-          unless user.save
-            raise ActiveRecord::Rollback
-            return render_validation_errors(user)
-          end
-
-          # Create business
-          business = Business.create!(
-            name: params[:business_name],
-            slug: params[:business_name]&.parameterize,
-            industry: params[:industry] || 'other',
-            email: params[:email],
-            phone: params[:phone],
-            status: 'active',
-            owner: user,
-            settings: {
-              booking_window_days: 30,
-              min_booking_notice_hours: 1,
-              max_bookings_per_slot: 1,
-              allow_cancellation: true,
-              cancellation_notice_hours: 24
-            }
-          )
-
-          log_audit(action: 'create', auditable: user)
-          log_audit(action: 'create', auditable: business)
-          
-          token = generate_jwt_token(user)
-          render_created({
-            user: user_response(user),
-            business: business_response(business),
-            token: token
-          }, message: 'Business account created successfully')
+        unless user.save
+          return render_validation_errors(user)
         end
+
+        # Create business
+        business = Business.create!(
+          name: params[:business_name],
+          slug: params[:business_name]&.parameterize,
+          industry: params[:industry] || 'other',
+          email: params[:email],
+          phone: params[:phone],
+          status: 'active',
+          owner: user,
+          settings: {
+            booking_window_days: 30,
+            min_booking_notice_hours: 1,
+            max_bookings_per_slot: 1,
+            allow_cancellation: true,
+            cancellation_notice_hours: 24
+          }
+        )
+
+        log_audit(action: 'create', auditable: user)
+        log_audit(action: 'create', auditable: business)
+
+        token = generate_jwt_token(user)
+        render_created({
+          user: user_response(user),
+          business: business_response(business),
+          token: token
+        }, message: 'Business account created successfully')
       rescue ActiveRecord::RecordInvalid => e
         render_error(e.record.errors.full_messages.join(', '), status: :unprocessable_entity)
       end

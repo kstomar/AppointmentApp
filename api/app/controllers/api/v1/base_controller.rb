@@ -5,13 +5,21 @@ module Api
 
       before_action :authenticate_user!
 
-      after_action :verify_authorized, except: :index, unless: :skip_authorization?
-      after_action :verify_policy_scoped, only: :index, unless: :skip_authorization?
+      after_action :verify_authorized, unless: :skip_authorization?, if: -> { action_exists? && action_name != 'index' }
+      after_action :verify_policy_scoped, unless: :skip_authorization?, if: -> { action_name == 'index' && index_action_exists? }
 
       private
 
       def skip_authorization?
         false
+      end
+
+      def action_exists?
+        respond_to?(action_name, true)
+      end
+
+      def index_action_exists?
+        respond_to?(:index, true)
       end
 
       def pundit_user

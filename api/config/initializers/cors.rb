@@ -1,6 +1,6 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    cors_origins = ENV.fetch('CORS_ORIGINS', 'http://localhost:3000')
+    cors_origins = ENV.fetch('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000')
     
     if cors_origins == '*'
       origins '*'
