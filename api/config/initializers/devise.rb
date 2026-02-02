@@ -1,5 +1,6 @@
 Devise.setup do |config|
   config.mailer_sender = ENV.fetch('MAILER_FROM_ADDRESS', 'noreply@example.com')
+  config.mailer = 'CustomDeviseMailer'
 
   require 'devise/orm/active_record'
 

@@ -22,6 +22,9 @@ Rails.application.routes.draw do
             post 'auth/change_password', to: 'auth#change_password'
             post 'auth/forgot_password', to: 'auth#forgot_password'
             post 'auth/reset_password', to: 'auth#reset_password'
+            post 'auth/confirm_email', to: 'auth#confirm_email'
+            post 'auth/resend_confirmation', to: 'auth#resend_confirmation'
+            post 'auth/unlock_account', to: 'auth#unlock_account'
 
       # Businesses and nested resources
       resources :businesses do

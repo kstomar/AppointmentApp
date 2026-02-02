@@ -1,7 +1,7 @@
 module Api
   module V1
     class AuthController < BaseController
-      skip_before_action :authenticate_user!, only: [:sign_up, :sign_in, :sign_up_business, :sign_up_client, :forgot_password, :reset_password]
+      skip_before_action :authenticate_user!, only: [:sign_up, :sign_in, :sign_up_business, :sign_up_client, :forgot_password, :reset_password, :confirm_email, :resend_confirmation, :unlock_account]
 
       # Legacy sign_up endpoint
       def sign_up
@@ -160,6 +160,41 @@ module Api
           render_success(message: 'Password has been reset successfully')
         else
           render_validation_errors(user)
+        end
+      end
+
+      def confirm_email
+        user = User.confirm_by_token(params[:confirmation_token])
+
+        if user.errors.empty?
+          log_audit(action: 'confirm_email', auditable: user)
+          render_success(message: 'Email confirmed successfully')
+        else
+          render_error(user.errors.full_messages.join(', '), status: :unprocessable_entity)
+        end
+      end
+
+      def resend_confirmation
+        user = User.find_by(email: params[:email]&.downcase)
+
+        if user && !user.confirmed?
+          user.send_confirmation_instructions
+          render_success(message: 'Confirmation instructions sent')
+        elsif user&.confirmed?
+          render_error('Email is already confirmed', status: :unprocessable_entity)
+        else
+          render_success(message: 'If your email exists in our system, you will receive confirmation instructions')
+        end
+      end
+
+      def unlock_account
+        user = User.unlock_access_by_token(params[:unlock_token])
+
+        if user.errors.empty?
+          log_audit(action: 'unlock_account', auditable: user)
+          render_success(message: 'Account unlocked successfully')
+        else
+          render_error(user.errors.full_messages.join(', '), status: :unprocessable_entity)
         end
       end
 
