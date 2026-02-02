@@ -53,7 +53,7 @@ class ApiService {
       phone?: string;
     }): Promise<{ user: User; token: string }> {
       const response = await this.client.post('/auth/sign_up', data);
-      return response.data;
+      return response.data.data;
     }
 
         async signUpBusiness(data: {
@@ -67,7 +67,7 @@ class ApiService {
           industry?: string;
         }): Promise<{ user: User; business: Business; token: string }> {
           const response = await this.client.post('/auth/sign_up/business', data);
-          return response.data;
+          return response.data.data;
         }
 
         async signUpClient(data: {
@@ -80,12 +80,12 @@ class ApiService {
           industry?: string;
         }): Promise<{ user: User; token: string }> {
           const response = await this.client.post('/auth/sign_up/client', data);
-          return response.data;
+          return response.data.data;
         }
 
     async signIn(email: string, password: string): Promise<{ user: User; token: string }> {
       const response = await this.client.post('/auth/sign_in', { email, password });
-      return response.data;
+      return response.data.data;
     }
 
   async signOut(): Promise<void> {
@@ -94,56 +94,56 @@ class ApiService {
 
   async getMe(): Promise<User> {
     const response = await this.client.get('/auth/me');
-    return response.data;
+    return response.data.data;
   }
 
   async updateProfile(data: Partial<User>): Promise<User> {
     const response = await this.client.patch('/auth/profile', data);
-    return response.data;
+    return response.data.data;
   }
 
   // Businesses
   async getBusinesses(): Promise<Business[]> {
     const response = await this.client.get('/businesses');
-    return response.data;
+    return response.data.data;
   }
 
   async getBusiness(id: string): Promise<Business> {
     const response = await this.client.get(`/businesses/${id}`);
-    return response.data;
+    return response.data.data;
   }
 
   async getBusinessBySlug(slug: string): Promise<Business> {
     const response = await this.client.get(`/public/businesses/${slug}`);
-    return response.data;
+    return response.data.data;
   }
 
   // Services
   async getServices(businessId: string): Promise<Service[]> {
     const response = await this.client.get(`/businesses/${businessId}/services`);
-    return response.data;
+    return response.data.data;
   }
 
   async getService(businessId: string, serviceId: string): Promise<Service> {
     const response = await this.client.get(`/businesses/${businessId}/services/${serviceId}`);
-    return response.data;
+    return response.data.data;
   }
 
   // Staff
   async getStaffMembers(businessId: string): Promise<StaffMember[]> {
     const response = await this.client.get(`/businesses/${businessId}/staff_members`);
-    return response.data;
+    return response.data.data;
   }
 
   async getStaffMember(businessId: string, staffId: string): Promise<StaffMember> {
     const response = await this.client.get(`/businesses/${businessId}/staff_members/${staffId}`);
-    return response.data;
+    return response.data.data;
   }
 
   // Locations
   async getLocations(businessId: string): Promise<Location[]> {
     const response = await this.client.get(`/businesses/${businessId}/locations`);
-    return response.data;
+    return response.data.data;
   }
 
   // Availability
@@ -160,7 +160,7 @@ class ApiService {
     const response = await this.client.get(`/public/businesses/${businessSlug}/availability`, {
       params,
     });
-    return response.data;
+    return response.data.data;
   }
 
   // Bookings
@@ -170,22 +170,22 @@ class ApiService {
     endDate?: string;
   }): Promise<Booking[]> {
     const response = await this.client.get('/bookings', { params });
-    return response.data;
+    return response.data.data;
   }
 
   async getUpcomingBookings(): Promise<Booking[]> {
     const response = await this.client.get('/bookings/upcoming');
-    return response.data;
+    return response.data.data;
   }
 
   async getPastBookings(): Promise<Booking[]> {
     const response = await this.client.get('/bookings/past');
-    return response.data;
+    return response.data.data;
   }
 
   async getBooking(id: string): Promise<Booking> {
     const response = await this.client.get(`/bookings/${id}`);
-    return response.data;
+    return response.data.data;
   }
 
   async createBooking(data: {
@@ -203,7 +203,7 @@ class ApiService {
     };
   }): Promise<Booking> {
     const response = await this.client.post('/bookings', data);
-    return response.data;
+    return response.data.data;
   }
 
   async createPublicBooking(
@@ -223,40 +223,40 @@ class ApiService {
     }
   ): Promise<Booking> {
     const response = await this.client.post(`/public/businesses/${businessSlug}/bookings`, data);
-    return response.data;
+    return response.data.data;
   }
 
   async cancelBooking(id: string, reason?: string): Promise<Booking> {
     const response = await this.client.post(`/bookings/${id}/cancel`, { reason });
-    return response.data;
+    return response.data.data;
   }
 
   async rescheduleBooking(id: string, newStartAt: string): Promise<Booking> {
     const response = await this.client.post(`/bookings/${id}/reschedule`, {
       startAt: newStartAt,
     });
-    return response.data;
+    return response.data.data;
   }
 
   async completeBooking(id: string): Promise<Booking> {
     const response = await this.client.post(`/bookings/${id}/complete`);
-    return response.data;
+    return response.data.data;
   }
 
   async markNoShow(id: string): Promise<Booking> {
     const response = await this.client.post(`/bookings/${id}/no_show`);
-    return response.data;
+    return response.data.data;
   }
 
   // Notifications
   async getNotifications(): Promise<Notification[]> {
     const response = await this.client.get('/notifications');
-    return response.data;
+    return response.data.data;
   }
 
   async markNotificationRead(id: string): Promise<Notification> {
     const response = await this.client.post(`/notifications/${id}/mark_read`);
-    return response.data;
+    return response.data.data;
   }
 
   async markAllNotificationsRead(): Promise<void> {
@@ -265,18 +265,18 @@ class ApiService {
 
   async getUnreadCount(): Promise<number> {
     const response = await this.client.get('/notifications/unread_count');
-    return response.data.count;
+    return response.data.data.count;
   }
 
   // Payments
   async getPayments(): Promise<Payment[]> {
     const response = await this.client.get('/payments');
-    return response.data;
+    return response.data.data;
   }
 
   async createPaymentIntent(bookingId: string): Promise<{ clientSecret: string }> {
     const response = await this.client.post(`/bookings/${bookingId}/payments/intent`);
-    return response.data;
+    return response.data.data;
   }
 }
 
