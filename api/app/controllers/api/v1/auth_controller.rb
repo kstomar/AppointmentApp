@@ -42,6 +42,7 @@ module Api
           industry: params[:industry] || 'other',
           email: params[:email],
           phone: params[:phone],
+          timezone: params[:timezone] || 'UTC',
           status: 'active',
           owner: user,
           settings: {
