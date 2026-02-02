@@ -17,6 +17,9 @@ Devise.setup do |config|
   config.responder.error_status = :unprocessable_entity
   config.responder.redirect_status = :see_other
 
+  # API-only mode: disable navigational formats to prevent session errors
+  config.navigational_formats = []
+
   config.lock_strategy = :failed_attempts
   config.unlock_keys = [:email]
   config.unlock_strategy = :both
