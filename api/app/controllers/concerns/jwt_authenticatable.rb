@@ -11,11 +11,14 @@ module JwtAuthenticatable
     token = extract_token_from_header
     
     if token.blank?
+      Rails.logger.debug "JWT Auth: No token found in Authorization header"
       render_unauthorized('Missing authentication token')
       return
     end
 
     begin
+      # Use Warden::JWTAuth::TokenDecoder to ensure we use the same secret
+      # that was used to encode the token (configured in devise.rb)
       payload = decode_jwt_token(token)
       
       if payload.nil?
@@ -23,29 +26,33 @@ module JwtAuthenticatable
         return
       end
 
+      Rails.logger.debug "JWT Auth: Decoded payload - sub: #{payload['sub']}, jti: #{payload['jti']}"
+
       user = find_user_from_payload(payload)
       
       if user.nil?
+        Rails.logger.warn "JWT Auth: User not found for sub: #{payload['sub']}"
         render_unauthorized('User not found')
         return
       end
 
       if token_revoked?(payload)
+        Rails.logger.warn "JWT Auth: Token revoked for jti: #{payload['jti']}"
         render_unauthorized('Token has been revoked')
         return
       end
 
-      if token_expired?(payload)
-        render_unauthorized('Token has expired')
-        return
-      end
-
       @current_user = user
+      Rails.logger.debug "JWT Auth: Successfully authenticated user #{user.id}"
+    rescue JWT::ExpiredSignature => e
+      Rails.logger.warn "JWT Auth: Token expired - #{e.message}"
+      render_unauthorized('Token has expired')
     rescue JWT::DecodeError => e
-      Rails.logger.error "JWT decode error: #{e.message}"
+      Rails.logger.error "JWT Auth: Decode error - #{e.class}: #{e.message}"
       render_unauthorized('Invalid authentication token')
     rescue StandardError => e
-      Rails.logger.error "Authentication error: #{e.message}"
+      Rails.logger.error "JWT Auth: Unexpected error - #{e.class}: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
       render_unauthorized('Authentication failed')
     end
   end
@@ -68,27 +75,20 @@ module JwtAuthenticatable
   end
 
   def decode_jwt_token(token)
-    secret = jwt_secret
-    
-    decoded = JWT.decode(
-      token,
-      secret,
-      true,
-      {
-        algorithm: 'HS256',
-        verify_jti: false  # We'll verify JTI manually against denylist
-      }
-    )
-    
-    decoded.first
+    # Use Warden::JWTAuth::TokenDecoder which uses the same secret
+    # configured in Devise.jwt.secret (from devise.rb initializer)
+    # This ensures we decode with the exact same secret used to encode
+    Warden::JWTAuth::TokenDecoder.new.call(token)
   rescue JWT::ExpiredSignature
-    nil
-  rescue JWT::DecodeError
-    nil
+    # Re-raise so we can handle it specifically in authenticate_user_from_jwt!
+    raise
+  rescue JWT::DecodeError => e
+    Rails.logger.error "JWT decode failed: #{e.class}: #{e.message}"
+    raise
   end
 
   def find_user_from_payload(payload)
-    # devise-jwt stores user info in 'sub' claim
+    # devise-jwt stores user id in 'sub' claim
     user_id = payload['sub']
     return nil unless user_id.present?
 
@@ -100,19 +100,5 @@ module JwtAuthenticatable
     return true unless jti.present?
 
     JwtDenylist.exists?(jti: jti)
-  end
-
-  def token_expired?(payload)
-    exp = payload['exp']
-    return true unless exp.present?
-
-    Time.at(exp) < Time.current
-  end
-
-  def jwt_secret
-    ENV.fetch('DEVISE_JWT_SECRET_KEY') { 
-      Rails.application.credentials.devise_jwt_secret_key || 
-      Rails.application.secret_key_base 
-    }
   end
 end
