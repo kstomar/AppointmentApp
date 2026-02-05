@@ -1,7 +1,7 @@
 module Api
   module V1
     class AvailabilityController < BaseController
-      skip_before_action :authenticate_user!, only: [:index]
+      skip_before_action :authenticate_user_from_jwt!, only: [:index]
 
       def index
         business = Business.find(params[:business_id])

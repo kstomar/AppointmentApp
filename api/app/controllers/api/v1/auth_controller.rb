@@ -1,7 +1,7 @@
 module Api
   module V1
     class AuthController < BaseController
-      skip_before_action :authenticate_user!, only: [:sign_up, :sign_in, :sign_up_business, :sign_up_client, :forgot_password, :reset_password, :confirm_email, :resend_confirmation, :unlock_account]
+      skip_before_action :authenticate_user_from_jwt!, only: [:sign_up, :sign_in, :sign_up_business, :sign_up_client, :forgot_password, :reset_password, :confirm_email, :resend_confirmation, :unlock_account]
 
       # Legacy sign_up endpoint
       def sign_up

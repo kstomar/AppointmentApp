@@ -2,8 +2,10 @@ module Api
   module V1
     class BaseController < ApplicationController
       include Pundit::Authorization
+      include JwtAuthenticatable
 
-      before_action :authenticate_user!
+      # Use custom JWT authentication instead of Devise's authenticate_user!
+      skip_before_action :authenticate_user_from_jwt!, only: [], raise: false
 
       after_action :verify_authorized, unless: :skip_authorization?, if: -> { action_exists? && action_name != 'index' }
       after_action :verify_policy_scoped, unless: :skip_authorization?, if: -> { action_name == 'index' && index_action_exists? }
