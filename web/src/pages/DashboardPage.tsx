@@ -25,8 +25,8 @@ export function DashboardPage() {
     queryFn: () => api.getUnreadCount(),
   });
 
-  const bookings = bookingsData?.data || [];
-  const unreadCount = notificationsData?.data?.count || 0;
+  const bookings = bookingsData || [];
+  const unreadCount = notificationsData?.count || 0;
 
   const todayBookings = bookings.filter((b: Booking) =>
     format(parseISO(b.start_at), 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
