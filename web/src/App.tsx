@@ -8,6 +8,13 @@ import { SignupSelectPage } from './pages/SignupSelectPage';
 import { SignupBusinessPage } from './pages/SignupBusinessPage';
 import { SignupClientPage } from './pages/SignupClientPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { BookingsPage } from './pages/BookingsPage';
+import { ClientsPage } from './pages/ClientsPage';
+import { ServicesPage } from './pages/ServicesPage';
+import { StaffPage } from './pages/StaffPage';
+import { PaymentsPage } from './pages/PaymentsPage';
+import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { PublicBookingPage } from './pages/PublicBookingPage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 
@@ -45,6 +52,76 @@ function App() {
               <ProtectedRoute>
                 <DashboardLayout>
                   <DashboardPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/bookings"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <BookingsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/clients"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ClientsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/services"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ServicesPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/staff"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <StaffPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/payments"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <PaymentsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/reports"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ReportsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/settings"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <SettingsPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

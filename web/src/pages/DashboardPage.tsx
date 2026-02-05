@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO, startOfDay, endOfDay, addDays } from 'date-fns';
-import { Calendar, Clock, Users, DollarSign, TrendingUp, Bell } from 'lucide-react';
+import { Calendar, Clock, Users, TrendingUp, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
