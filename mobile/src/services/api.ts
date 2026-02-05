@@ -269,13 +269,114 @@ class ApiService {
   }
 
   // Payments
-  async getPayments(): Promise<Payment[]> {
-    const response = await this.client.get('/payments');
+  async getPayments(params?: { status?: string }): Promise<{ data: Payment[]; meta: { total: number } }> {
+    const response = await this.client.get('/payments', { params });
+    return response.data;
+  }
+
+  async getPayment(id: string): Promise<Payment> {
+    const response = await this.client.get(`/payments/${id}`);
+    return response.data.data;
+  }
+
+  async refundPayment(id: string, reason?: string): Promise<Payment> {
+    const response = await this.client.post(`/payments/${id}/refund`, { reason });
     return response.data.data;
   }
 
   async createPaymentIntent(bookingId: string): Promise<{ clientSecret: string }> {
     const response = await this.client.post(`/bookings/${bookingId}/payments/intent`);
+    return response.data.data;
+  }
+
+  // Clients
+  async getClients(params?: { search?: string; status?: string; page?: number; per_page?: number }): Promise<{ data: User[]; meta: { total: number } }> {
+    const response = await this.client.get('/clients', { params });
+    return response.data;
+  }
+
+  async getClient(id: string): Promise<User> {
+    const response = await this.client.get(`/clients/${id}`);
+    return response.data.data;
+  }
+
+  async createClient(data: { email: string; first_name: string; last_name: string; phone?: string }): Promise<User> {
+    const response = await this.client.post('/clients', data);
+    return response.data.data;
+  }
+
+  async updateClient(id: string, data: Partial<User>): Promise<User> {
+    const response = await this.client.patch(`/clients/${id}`, data);
+    return response.data.data;
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    await this.client.delete(`/clients/${id}`);
+  }
+
+  // Services CRUD
+  async createService(businessId: string, data: Partial<Service>): Promise<Service> {
+    const response = await this.client.post(`/businesses/${businessId}/services`, data);
+    return response.data.data;
+  }
+
+  async updateService(businessId: string, serviceId: string, data: Partial<Service>): Promise<Service> {
+    const response = await this.client.patch(`/businesses/${businessId}/services/${serviceId}`, data);
+    return response.data.data;
+  }
+
+  async deleteService(businessId: string, serviceId: string): Promise<void> {
+    await this.client.delete(`/businesses/${businessId}/services/${serviceId}`);
+  }
+
+  // Staff CRUD
+  async createStaffMember(businessId: string, data: Partial<StaffMember>): Promise<StaffMember> {
+    const response = await this.client.post(`/businesses/${businessId}/staff_members`, data);
+    return response.data.data;
+  }
+
+  async updateStaffMember(businessId: string, staffId: string, data: Partial<StaffMember>): Promise<StaffMember> {
+    const response = await this.client.patch(`/businesses/${businessId}/staff_members/${staffId}`, data);
+    return response.data.data;
+  }
+
+  async deleteStaffMember(businessId: string, staffId: string): Promise<void> {
+    await this.client.delete(`/businesses/${businessId}/staff_members/${staffId}`);
+  }
+
+  // Business CRUD
+  async updateBusiness(id: string, data: Partial<Business>): Promise<Business> {
+    const response = await this.client.patch(`/businesses/${id}`, data);
+    return response.data.data;
+  }
+
+  // Reports
+  async getReportsDashboard(params?: { days?: number; start_date?: string; end_date?: string }): Promise<{
+    stats: Array<{ label: string; value: string; change: string }>;
+    bookings_by_day: Array<{ date: string; bookings: number; revenue: number }>;
+    bookings_by_service: Array<{ name: string; value: number }>;
+    bookings_by_status: Array<{ name: string; value: number; color: string }>;
+    revenue_by_month: Array<{ month: string; revenue: number }>;
+    top_staff: Array<{ name: string; bookings: number; revenue: number }>;
+    peak_hours: Array<{ time: string; bookings: number; percentage: number }>;
+    booking_sources: Array<{ source: string; count: number; percentage: number }>;
+  }> {
+    const response = await this.client.get('/reports/dashboard', { params });
+    return response.data.data;
+  }
+
+  async getReportsBookings(params?: { days?: number; start_date?: string; end_date?: string }): Promise<unknown> {
+    const response = await this.client.get('/reports/bookings', { params });
+    return response.data.data;
+  }
+
+  async getReportsRevenue(params?: { days?: number; start_date?: string; end_date?: string }): Promise<unknown> {
+    const response = await this.client.get('/reports/revenue', { params });
+    return response.data.data;
+  }
+
+  async getReportsStaffPerformance(params?: { days?: number; start_date?: string; end_date?: string }): Promise<unknown> {
+    const response = await this.client.get('/reports/staff_performance', { params });
     return response.data.data;
   }
 }

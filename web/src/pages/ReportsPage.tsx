@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, TrendingDown, Users, Calendar, DollarSign, Clock, Download, Filter } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 
@@ -7,100 +8,75 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { LoadingState } from '../components/ui/loading-state';
+import { ErrorState } from '../components/ui/error-state';
+import api from '../services/api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export function ReportsPage() {
   const [dateRange, setDateRange] = useState('30');
-  const [isLoading] = useState(false);
 
-  // Mock data for charts
-  const bookingsByDay = [
-    { date: 'Mon', bookings: 12, revenue: 420 },
-    { date: 'Tue', bookings: 19, revenue: 665 },
-    { date: 'Wed', bookings: 15, revenue: 525 },
-    { date: 'Thu', bookings: 22, revenue: 770 },
-    { date: 'Fri', bookings: 28, revenue: 980 },
-    { date: 'Sat', bookings: 35, revenue: 1225 },
-    { date: 'Sun', bookings: 8, revenue: 280 },
-  ];
+  const { data: reportData, isLoading, error, refetch } = useQuery({
+    queryKey: ['reports', 'dashboard', dateRange],
+    queryFn: () => api.getReportsDashboard({ days: parseInt(dateRange) }),
+  });
 
-  const revenueByMonth = [
-    { month: 'Sep', revenue: 4200 },
-    { month: 'Oct', revenue: 5100 },
-    { month: 'Nov', revenue: 4800 },
-    { month: 'Dec', revenue: 6200 },
-    { month: 'Jan', revenue: 5800 },
-    { month: 'Feb', revenue: 3200 },
-  ];
+  // Extract data from API response with defaults
+  const statsData = reportData?.stats || [];
+  const bookingsByDay = reportData?.bookings_by_day || [];
+  const bookingsByService = reportData?.bookings_by_service || [];
+  const bookingsByStatus = reportData?.bookings_by_status || [];
+  const revenueByMonth = reportData?.revenue_by_month || [];
+  const topStaff = reportData?.top_staff || [];
+  const peakHours = reportData?.peak_hours || [];
+  const bookingSources = reportData?.booking_sources || [];
 
-  const bookingsByService = [
-    { name: 'Haircut', value: 45 },
-    { name: 'Hair Coloring', value: 25 },
-    { name: 'Consultation', value: 15 },
-    { name: 'Group Yoga', value: 10 },
-    { name: 'Other', value: 5 },
-  ];
-
-  const bookingsByStatus = [
-    { name: 'Completed', value: 156, color: '#22c55e' },
-    { name: 'Confirmed', value: 42, color: '#3b82f6' },
-    { name: 'Cancelled', value: 18, color: '#ef4444' },
-    { name: 'No Show', value: 8, color: '#f59e0b' },
-  ];
-
-  const topStaff = [
-    { name: 'Sarah Johnson', bookings: 48, revenue: 2400 },
-    { name: 'Mike Chen', bookings: 42, revenue: 1890 },
-    { name: 'Emily Davis', bookings: 35, revenue: 875 },
-    { name: 'Alex Thompson', bookings: 28, revenue: 1260 },
-  ];
-
+  // Build stats array from API data
   const stats = [
     { 
       label: 'Total Bookings', 
-      value: '224', 
-      change: '+12%', 
-      trend: 'up',
+      value: statsData.find((s: { label: string }) => s.label === 'total_bookings')?.value || '0', 
+      change: statsData.find((s: { label: string }) => s.label === 'total_bookings')?.change || '0%', 
+      trend: (statsData.find((s: { label: string }) => s.label === 'total_bookings')?.change || '').startsWith('-') ? 'down' : 'up',
       icon: Calendar,
       description: 'vs last period'
     },
     { 
       label: 'Revenue', 
-      value: '$8,450', 
-      change: '+8%', 
-      trend: 'up',
+      value: statsData.find((s: { label: string }) => s.label === 'revenue')?.value || '$0', 
+      change: statsData.find((s: { label: string }) => s.label === 'revenue')?.change || '0%', 
+      trend: (statsData.find((s: { label: string }) => s.label === 'revenue')?.change || '').startsWith('-') ? 'down' : 'up',
       icon: DollarSign,
       description: 'vs last period'
     },
     { 
       label: 'New Clients', 
-      value: '32', 
-      change: '+24%', 
-      trend: 'up',
+      value: statsData.find((s: { label: string }) => s.label === 'new_clients')?.value || '0', 
+      change: statsData.find((s: { label: string }) => s.label === 'new_clients')?.change || '0%', 
+      trend: (statsData.find((s: { label: string }) => s.label === 'new_clients')?.change || '').startsWith('-') ? 'down' : 'up',
       icon: Users,
       description: 'vs last period'
     },
     { 
       label: 'Avg. Booking Value', 
-      value: '$37.72', 
-      change: '-3%', 
-      trend: 'down',
+      value: statsData.find((s: { label: string }) => s.label === 'avg_booking_value')?.value || '$0', 
+      change: statsData.find((s: { label: string }) => s.label === 'avg_booking_value')?.change || '0%', 
+      trend: (statsData.find((s: { label: string }) => s.label === 'avg_booking_value')?.change || '').startsWith('-') ? 'down' : 'up',
       icon: TrendingUp,
       description: 'vs last period'
     },
     { 
       label: 'Cancellation Rate', 
-      value: '8%', 
-      change: '-2%', 
-      trend: 'up',
+      value: statsData.find((s: { label: string }) => s.label === 'cancellation_rate')?.value || '0%', 
+      change: statsData.find((s: { label: string }) => s.label === 'cancellation_rate')?.change || '0%', 
+      trend: (statsData.find((s: { label: string }) => s.label === 'cancellation_rate')?.change || '').startsWith('+') ? 'down' : 'up',
       icon: TrendingDown,
       description: 'vs last period'
     },
     { 
       label: 'Avg. Duration', 
-      value: '45 min', 
-      change: '+5 min', 
+      value: statsData.find((s: { label: string }) => s.label === 'avg_duration')?.value || '0 min', 
+      change: statsData.find((s: { label: string }) => s.label === 'avg_duration')?.change || '0 min', 
       trend: 'up',
       icon: Clock,
       description: 'vs last period'
@@ -109,6 +85,10 @@ export function ReportsPage() {
 
   if (isLoading) {
     return <LoadingState message="Loading reports..." />;
+  }
+
+  if (error) {
+    return <ErrorState onRetry={() => refetch()} />;
   }
 
   return (
@@ -267,13 +247,9 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { time: '10:00 AM - 11:00 AM', bookings: 28, percentage: 85 },
-                    { time: '2:00 PM - 3:00 PM', bookings: 24, percentage: 73 },
-                    { time: '11:00 AM - 12:00 PM', bookings: 22, percentage: 67 },
-                    { time: '4:00 PM - 5:00 PM', bookings: 18, percentage: 55 },
-                    { time: '9:00 AM - 10:00 AM', bookings: 15, percentage: 45 },
-                  ].map((slot) => (
+                  {(peakHours.length > 0 ? peakHours : [
+                    { time: 'No data', bookings: 0, percentage: 0 },
+                  ]).map((slot: { time: string; bookings: number; percentage: number }) => (
                     <div key={slot.time} className="space-y-1">
                       <div className="flex justify-between text-sm">
                         <span>{slot.time}</span>
@@ -298,12 +274,9 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { source: 'Online Booking', count: 145, percentage: 65 },
-                    { source: 'Phone', count: 45, percentage: 20 },
-                    { source: 'Walk-in', count: 22, percentage: 10 },
-                    { source: 'Mobile App', count: 12, percentage: 5 },
-                  ].map((item) => (
+                  {(bookingSources.length > 0 ? bookingSources : [
+                    { source: 'No data', count: 0, percentage: 0 },
+                  ]).map((item: { source: string; count: number; percentage: number }) => (
                     <div key={item.source} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 rounded-full bg-primary" />
@@ -350,26 +323,26 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { service: 'Hair Coloring', revenue: 3600, percentage: 43 },
-                    { service: 'Haircut', revenue: 2450, percentage: 29 },
-                    { service: 'Group Yoga', revenue: 1250, percentage: 15 },
-                    { service: 'Consultation', revenue: 750, percentage: 9 },
-                    { service: 'Other', revenue: 400, percentage: 4 },
-                  ].map((item) => (
-                    <div key={item.service} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{item.service}</span>
-                        <span className="font-medium">${item.revenue.toLocaleString()}</span>
+                  {(bookingsByService.length > 0 ? bookingsByService : [
+                    { name: 'No data', value: 0 },
+                  ]).map((item: { name: string; value: number }) => {
+                    const total = bookingsByService.reduce((sum: number, s: { value: number }) => sum + s.value, 0);
+                    const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                    return (
+                      <div key={item.name} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span>{item.name}</span>
+                          <span className="font-medium">{item.value} bookings</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 rounded-full" 
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-green-500 rounded-full" 
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -449,25 +422,25 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { name: 'Sarah Johnson', utilization: 85 },
-                    { name: 'Mike Chen', utilization: 78 },
-                    { name: 'Emily Davis', utilization: 65 },
-                    { name: 'Alex Thompson', utilization: 52 },
-                  ].map((staff) => (
-                    <div key={staff.name} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{staff.name}</span>
-                        <span className="font-medium">{staff.utilization}%</span>
+                  {(topStaff.length > 0 ? topStaff : [
+                    { name: 'No data', utilization: 0 },
+                  ]).map((staff: { name: string; bookings?: number; utilization?: number }) => {
+                    const utilization = staff.utilization || Math.min(100, (staff.bookings || 0) * 3);
+                    return (
+                      <div key={staff.name} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span>{staff.name}</span>
+                          <span className="font-medium">{utilization}%</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full" 
+                            style={{ width: `${utilization}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full" 
-                          style={{ width: `${staff.utilization}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -479,18 +452,15 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { name: 'Sarah Johnson', rating: 4.9, reviews: 48 },
-                    { name: 'Emily Davis', rating: 4.8, reviews: 35 },
-                    { name: 'Mike Chen', rating: 4.7, reviews: 42 },
-                    { name: 'Alex Thompson', rating: 4.5, reviews: 28 },
-                  ].map((staff) => (
+                  {(topStaff.length > 0 ? topStaff : [
+                    { name: 'No data', rating: 0, reviews: 0 },
+                  ]).map((staff: { name: string; rating?: number; reviews?: number; bookings?: number }) => (
                     <div key={staff.name} className="flex items-center justify-between">
                       <span>{staff.name}</span>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold">{staff.rating}</span>
+                        <span className="font-bold">{staff.rating || 'N/A'}</span>
                         <span className="text-yellow-500">★</span>
-                        <span className="text-sm text-muted-foreground">({staff.reviews})</span>
+                        <span className="text-sm text-muted-foreground">({staff.reviews || staff.bookings || 0})</span>
                       </div>
                     </div>
                   ))}

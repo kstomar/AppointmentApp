@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, Bell, Calendar, CreditCard, Shield, Globe, Key, Save, ExternalLink } from 'lucide-react';
 
 import { Button } from '../components/ui/button';
@@ -11,6 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
+import { LoadingState } from '../components/ui/loading-state';
+import { ErrorState } from '../components/ui/error-state';
+import api from '../services/api';
+import { useBusinessStore } from '../stores/businessStore';
+import type { Business } from '../types';
 
 const timezones = [
   { value: 'America/New_York', label: 'Eastern Time (ET)' },
@@ -32,12 +38,53 @@ const currencies = [
 ];
 
 export function SettingsPage() {
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
+  const { currentBusiness, fetchBusinesses } = useBusinessStore();
+  const [formData, setFormData] = useState<Partial<Business>>({});
+
+  useEffect(() => {
+    if (!currentBusiness) {
+      fetchBusinesses();
+    }
+  }, [currentBusiness, fetchBusinesses]);
+
+  const businessId = currentBusiness?.id || '';
+
+  const { data: business, isLoading, error, refetch } = useQuery({
+    queryKey: ['business', businessId],
+    queryFn: () => api.getBusiness(businessId),
+    enabled: !!businessId,
+  });
+
+  useEffect(() => {
+    if (business) {
+      setFormData(business);
+    }
+  }, [business]);
+
+  const updateBusinessMutation = useMutation({
+    mutationFn: (data: Partial<Business>) => api.updateBusiness(businessId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business', businessId] });
+      fetchBusinesses();
+    },
+  });
 
   const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 1000);
+    updateBusinessMutation.mutate(formData);
   };
+
+  const updateFormField = (field: string, value: string | boolean | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (isLoading) {
+    return <LoadingState message="Loading settings..." />;
+  }
+
+  if (error) {
+    return <ErrorState onRetry={() => refetch()} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -46,9 +93,9 @@ export function SettingsPage() {
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage your business preferences</p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving}>
+        <Button onClick={handleSave} disabled={updateBusinessMutation.isPending}>
           <Save className="mr-2 h-4 w-4" />
-          {isSaving ? 'Saving...' : 'Save Changes'}
+          {updateBusinessMutation.isPending ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
 
@@ -90,11 +137,17 @@ export function SettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Business Name</Label>
-                  <Input defaultValue="My Salon" />
+                  <Input 
+                    value={formData.name || ''} 
+                    onChange={(e) => updateFormField('name', e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Industry</Label>
-                  <Select defaultValue="beauty">
+                  <Select 
+                    value={formData.industry || 'other'}
+                    onValueChange={(value) => updateFormField('industry', value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -113,22 +166,35 @@ export function SettingsPage() {
                 <Label>Description</Label>
                 <Textarea 
                   placeholder="Tell clients about your business..."
-                  defaultValue="Professional salon offering haircuts, coloring, and styling services."
+                  value={formData.description || ''}
+                  onChange={(e) => updateFormField('description', e.target.value)}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input type="email" defaultValue="contact@mysalon.com" />
+                  <Input 
+                    type="email" 
+                    value={formData.email || ''} 
+                    onChange={(e) => updateFormField('email', e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Phone</Label>
-                  <Input type="tel" defaultValue="+1 234 567 8900" />
+                  <Input 
+                    type="tel" 
+                    value={formData.phone || ''} 
+                    onChange={(e) => updateFormField('phone', e.target.value)}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Website</Label>
-                <Input type="url" defaultValue="https://mysalon.com" />
+                <Input 
+                  type="url" 
+                  value={formData.website || ''} 
+                  onChange={(e) => updateFormField('website', e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
-import type { ApiResponse, User, Business, Location, Service, StaffMember, AvailabilitySlot, Booking, Notification, BookingFormData } from '../types';
+import type { ApiResponse, User, Business, Location, Service, StaffMember, AvailabilitySlot, Booking, Notification, BookingFormData, Client, Payment, ReportStats } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -177,6 +177,112 @@ class ApiService {
 
   async getUnreadCount() {
     const response = await this.client.get<ApiResponse<{ count: number }>>('/notifications/unread_count');
+    return response.data.data;
+  }
+
+  // Clients
+  async getClients(params?: { search?: string; status?: string; page?: number; per_page?: number }) {
+    const response = await this.client.get<ApiResponse<Client[]>>('/clients', { params });
+    return response.data;
+  }
+
+  async getClient(id: string) {
+    const response = await this.client.get<ApiResponse<Client>>(`/clients/${id}`);
+    return response.data.data;
+  }
+
+  async createClient(data: { email: string; first_name: string; last_name: string; phone?: string }) {
+    const response = await this.client.post<ApiResponse<Client>>('/clients', data);
+    return response.data.data;
+  }
+
+  async updateClient(id: string, data: Partial<Client>) {
+    const response = await this.client.patch<ApiResponse<Client>>(`/clients/${id}`, data);
+    return response.data.data;
+  }
+
+  async deleteClient(id: string) {
+    const response = await this.client.delete<ApiResponse<void>>(`/clients/${id}`);
+    return response.data;
+  }
+
+  // Services (standalone, not nested under business)
+  async createService(businessId: string, data: Partial<Service>) {
+    const response = await this.client.post<ApiResponse<Service>>(`/businesses/${businessId}/services`, data);
+    return response.data.data;
+  }
+
+  async updateService(businessId: string, serviceId: string, data: Partial<Service>) {
+    const response = await this.client.patch<ApiResponse<Service>>(`/businesses/${businessId}/services/${serviceId}`, data);
+    return response.data.data;
+  }
+
+  async deleteService(businessId: string, serviceId: string) {
+    const response = await this.client.delete<ApiResponse<void>>(`/businesses/${businessId}/services/${serviceId}`);
+    return response.data;
+  }
+
+  // Staff Members
+  async createStaffMember(businessId: string, data: Partial<StaffMember>) {
+    const response = await this.client.post<ApiResponse<StaffMember>>(`/businesses/${businessId}/staff_members`, data);
+    return response.data.data;
+  }
+
+  async updateStaffMember(businessId: string, staffId: string, data: Partial<StaffMember>) {
+    const response = await this.client.patch<ApiResponse<StaffMember>>(`/businesses/${businessId}/staff_members/${staffId}`, data);
+    return response.data.data;
+  }
+
+  async deleteStaffMember(businessId: string, staffId: string) {
+    const response = await this.client.delete<ApiResponse<void>>(`/businesses/${businessId}/staff_members/${staffId}`);
+    return response.data;
+  }
+
+  // Payments
+  async getPayments(params?: { status?: string; start_date?: string; end_date?: string; page?: number }) {
+    const response = await this.client.get<ApiResponse<Payment[]>>('/payments', { params });
+    return response.data;
+  }
+
+  async getPayment(id: string) {
+    const response = await this.client.get<ApiResponse<Payment>>(`/payments/${id}`);
+    return response.data.data;
+  }
+
+  async refundPayment(id: string, reason?: string) {
+    const response = await this.client.post<ApiResponse<Payment>>(`/payments/${id}/refund`, { reason });
+    return response.data.data;
+  }
+
+  // Reports
+  async getReportsDashboard(params?: { days?: number; start_date?: string; end_date?: string }) {
+    const response = await this.client.get<ApiResponse<ReportStats>>('/reports/dashboard', { params });
+    return response.data.data;
+  }
+
+  async getReportsBookings(params?: { days?: number; start_date?: string; end_date?: string }) {
+    const response = await this.client.get<ApiResponse<any>>('/reports/bookings', { params });
+    return response.data.data;
+  }
+
+  async getReportsRevenue(params?: { days?: number; start_date?: string; end_date?: string }) {
+    const response = await this.client.get<ApiResponse<any>>('/reports/revenue', { params });
+    return response.data.data;
+  }
+
+  async getReportsStaffPerformance(params?: { days?: number; start_date?: string; end_date?: string }) {
+    const response = await this.client.get<ApiResponse<any>>('/reports/staff_performance', { params });
+    return response.data.data;
+  }
+
+  // Booking actions
+  async completeBooking(id: string) {
+    const response = await this.client.post<ApiResponse<Booking>>(`/bookings/${id}/complete`);
+    return response.data.data;
+  }
+
+  async noShowBooking(id: string) {
+    const response = await this.client.post<ApiResponse<Booking>>(`/bookings/${id}/no_show`);
     return response.data.data;
   }
 }

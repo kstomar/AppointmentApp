@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Clock, Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign, Users } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -15,6 +16,8 @@ import { DataTable } from '../components/ui/data-table';
 import { LoadingState } from '../components/ui/loading-state';
 import { ErrorState } from '../components/ui/error-state';
 import { EmptyState } from '../components/ui/empty-state';
+import api from '../services/api';
+import { useBusinessStore } from '../stores/businessStore';
 import type { Service } from '../types';
 
 export function ServicesPage() {
@@ -23,98 +26,29 @@ export function ServicesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { currentBusiness, fetchBusinesses } = useBusinessStore();
 
-  // Mock data for services
-  const mockServices: Service[] = [
-    {
-      id: '1',
-      business_id: '1',
-      name: 'Haircut',
-      slug: 'haircut',
-      description: 'Professional haircut service',
-      service_type: 'appointment',
-      duration_minutes: 30,
-      buffer_before_minutes: 5,
-      buffer_after_minutes: 5,
-      total_duration_minutes: 40,
-      price: '$35.00',
-      price_cents: 3500,
-      max_attendees: 1,
-      min_attendees: 1,
-      is_public: true,
-      allow_online_booking: true,
-      requires_confirmation: false,
-      status: 'active',
-      staff_count: 3,
-    },
-    {
-      id: '2',
-      business_id: '1',
-      name: 'Hair Coloring',
-      slug: 'hair-coloring',
-      description: 'Full hair coloring service',
-      service_type: 'appointment',
-      duration_minutes: 90,
-      buffer_before_minutes: 10,
-      buffer_after_minutes: 10,
-      total_duration_minutes: 110,
-      price: '$120.00',
-      price_cents: 12000,
-      max_attendees: 1,
-      min_attendees: 1,
-      is_public: true,
-      allow_online_booking: true,
-      requires_confirmation: true,
-      status: 'active',
-      staff_count: 2,
-    },
-    {
-      id: '3',
-      business_id: '1',
-      name: 'Consultation',
-      slug: 'consultation',
-      description: 'Initial consultation for new clients',
-      service_type: 'appointment',
-      duration_minutes: 15,
-      buffer_before_minutes: 0,
-      buffer_after_minutes: 5,
-      total_duration_minutes: 20,
-      price: 'Free',
-      price_cents: 0,
-      max_attendees: 1,
-      min_attendees: 1,
-      is_public: true,
-      allow_online_booking: true,
-      requires_confirmation: false,
-      status: 'active',
-      staff_count: 4,
-    },
-    {
-      id: '4',
-      business_id: '1',
-      name: 'Group Yoga Class',
-      slug: 'group-yoga',
-      description: 'Group yoga session for up to 10 participants',
-      service_type: 'class',
-      duration_minutes: 60,
-      buffer_before_minutes: 15,
-      buffer_after_minutes: 15,
-      total_duration_minutes: 90,
-      price: '$25.00',
-      price_cents: 2500,
-      max_attendees: 10,
-      min_attendees: 3,
-      is_public: true,
-      allow_online_booking: true,
-      requires_confirmation: false,
-      status: 'active',
-      staff_count: 1,
-    },
-  ];
+  useEffect(() => {
+    if (!currentBusiness) {
+      fetchBusinesses();
+    }
+  }, [currentBusiness, fetchBusinesses]);
 
-  const services = mockServices;
-  const isLoading = false;
-  const error = null;
+  const businessId = currentBusiness?.id || '';
+
+  const { data: services = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['services', businessId],
+    queryFn: () => api.getServices(businessId),
+    enabled: !!businessId,
+  });
+
+  const deleteServiceMutation = useMutation({
+    mutationFn: (serviceId: string) => api.deleteService(businessId, serviceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services', businessId] });
+    },
+  });
 
   const filteredServices = services.filter((service) => {
     if (!searchQuery) return true;
@@ -213,7 +147,14 @@ export function ServicesPage() {
               Edit Service
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive"
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this service?')) {
+                  deleteServiceMutation.mutate(row.original.id);
+                }
+              }}
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Service
             </DropdownMenuItem>
@@ -234,7 +175,7 @@ export function ServicesPage() {
   }
 
   if (error) {
-    return <ErrorState />;
+    return <ErrorState onRetry={() => refetch()} />;
   }
 
   return (

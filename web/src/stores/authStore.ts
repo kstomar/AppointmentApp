@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>()(
           } else {
             set({ error: 'Sign in failed', isLoading: false });
           }
-        } catch (err) {
+        } catch {
           set({ error: 'Sign in failed', isLoading: false });
         }
       },
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
           } else {
             set({ error: 'Sign up failed', isLoading: false });
           }
-        } catch (err) {
+        } catch {
           set({ error: 'Sign up failed', isLoading: false });
         }
       },

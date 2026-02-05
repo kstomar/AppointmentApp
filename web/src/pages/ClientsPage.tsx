@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { Users, Plus, Search, Mail, Phone, Calendar, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -16,84 +16,42 @@ import { DataTable } from '../components/ui/data-table';
 import { LoadingState } from '../components/ui/loading-state';
 import { ErrorState } from '../components/ui/error-state';
 import { EmptyState } from '../components/ui/empty-state';
-
-interface Client {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  phone?: string;
-  avatar_url?: string;
-  created_at: string;
-  total_bookings: number;
-  last_booking_at?: string;
-  total_spent?: string;
-  status: string;
-}
+import api from '../services/api';
+import type { Client } from '../types';
 
 export function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newClientForm, setNewClientForm] = useState({ first_name: '', last_name: '', email: '', phone: '' });
+  const queryClient = useQueryClient();
 
-  // Mock data for now - will be replaced with actual API call
-  const mockClients: Client[] = [
-    {
-      id: '1',
-      email: 'john.doe@example.com',
-      first_name: 'John',
-      last_name: 'Doe',
-      full_name: 'John Doe',
-      phone: '+1 234 567 8900',
-      created_at: '2024-01-15T10:00:00Z',
-      total_bookings: 12,
-      last_booking_at: '2024-02-01T14:00:00Z',
-      total_spent: '$450.00',
-      status: 'active',
-    },
-    {
-      id: '2',
-      email: 'jane.smith@example.com',
-      first_name: 'Jane',
-      last_name: 'Smith',
-      full_name: 'Jane Smith',
-      phone: '+1 234 567 8901',
-      created_at: '2024-01-20T10:00:00Z',
-      total_bookings: 8,
-      last_booking_at: '2024-01-28T11:00:00Z',
-      total_spent: '$320.00',
-      status: 'active',
-    },
-    {
-      id: '3',
-      email: 'bob.wilson@example.com',
-      first_name: 'Bob',
-      last_name: 'Wilson',
-      full_name: 'Bob Wilson',
-      created_at: '2024-02-01T10:00:00Z',
-      total_bookings: 2,
-      total_spent: '$80.00',
-      status: 'active',
-    },
-  ];
-
-  const { data: clients = mockClients, isLoading, error, refetch } = useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => mockClients, // Replace with actual API call
-    enabled: false, // Disable for now since we're using mock data
+  const { data: clientsResponse, isLoading, error, refetch } = useQuery({
+    queryKey: ['clients', searchQuery],
+    queryFn: () => api.getClients({ search: searchQuery || undefined }),
   });
 
-  const filteredClients = clients.filter((client) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      client.full_name.toLowerCase().includes(query) ||
-      client.email.toLowerCase().includes(query) ||
-      client.phone?.toLowerCase().includes(query)
-    );
+  const clients = clientsResponse?.data || [];
+
+  const createClientMutation = useMutation({
+    mutationFn: (data: { email: string; first_name: string; last_name: string; phone?: string }) => 
+      api.createClient(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      setIsAddOpen(false);
+      setNewClientForm({ first_name: '', last_name: '', email: '', phone: '' });
+    },
   });
+
+  const deleteClientMutation = useMutation({
+    mutationFn: (id: string) => api.deleteClient(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+
+  // Filtering is done server-side via the search param
 
   const columns: ColumnDef<Client>[] = [
     {
@@ -178,7 +136,14 @@ export function ClientsPage() {
               Book Appointment
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive"
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this client?')) {
+                  deleteClientMutation.mutate(row.original.id);
+                }
+              }}
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Client
             </DropdownMenuItem>
@@ -246,7 +211,7 @@ export function ClientsPage() {
             </div>
           </div>
 
-          {filteredClients.length === 0 ? (
+          {clients.length === 0 ? (
             <EmptyState
               icon={Users}
               title="No clients found"
@@ -259,7 +224,7 @@ export function ClientsPage() {
           ) : (
             <DataTable 
               columns={columns} 
-              data={filteredClients}
+              data={clients}
               showColumnToggle={false}
             />
           )}
@@ -366,27 +331,50 @@ export function ClientsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">First Name</label>
-                <Input placeholder="John" />
+                <Input 
+                  placeholder="John" 
+                  value={newClientForm.first_name}
+                  onChange={(e) => setNewClientForm(prev => ({ ...prev, first_name: e.target.value }))}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Last Name</label>
-                <Input placeholder="Doe" />
+                <Input 
+                  placeholder="Doe" 
+                  value={newClientForm.last_name}
+                  onChange={(e) => setNewClientForm(prev => ({ ...prev, last_name: e.target.value }))}
+                />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Email</label>
-              <Input type="email" placeholder="john@example.com" />
+              <Input 
+                type="email" 
+                placeholder="john@example.com" 
+                value={newClientForm.email}
+                onChange={(e) => setNewClientForm(prev => ({ ...prev, email: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Phone</label>
-              <Input type="tel" placeholder="+1 234 567 8900" />
+              <Input 
+                type="tel" 
+                placeholder="+1 234 567 8900" 
+                value={newClientForm.phone}
+                onChange={(e) => setNewClientForm(prev => ({ ...prev, phone: e.target.value }))}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddOpen(false)}>
               Cancel
             </Button>
-            <Button>Add Client</Button>
+            <Button 
+              onClick={() => createClientMutation.mutate(newClientForm)}
+              disabled={createClientMutation.isPending || !newClientForm.email || !newClientForm.first_name || !newClientForm.last_name}
+            >
+              {createClientMutation.isPending ? 'Adding...' : 'Add Client'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

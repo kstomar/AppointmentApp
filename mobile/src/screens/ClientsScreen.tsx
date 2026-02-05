@@ -17,10 +17,13 @@ import { api } from '../services/api';
 import { User } from '../types';
 
 interface Client extends User {
-  totalBookings?: number;
-  lastVisit?: string;
-  totalSpent?: number;
+  total_bookings?: number;
+  last_booking_at?: string;
+  total_spent?: number;
   notes?: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
 }
 
 export function ClientsScreen() {
@@ -28,77 +31,36 @@ export function ClientsScreen() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
 
-  // Mock data for now - will be replaced with API call
-  const mockClients: Client[] = [
-    {
-      id: '1',
-      email: 'john.doe@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      phone: '+1 234 567 8900',
-      role: 'client',
-      totalBookings: 12,
-      lastVisit: '2026-01-28',
-      totalSpent: 450,
-    },
-    {
-      id: '2',
-      email: 'jane.smith@example.com',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      phone: '+1 234 567 8901',
-      role: 'client',
-      totalBookings: 8,
-      lastVisit: '2026-01-25',
-      totalSpent: 320,
-    },
-    {
-      id: '3',
-      email: 'mike.johnson@example.com',
-      firstName: 'Mike',
-      lastName: 'Johnson',
-      phone: '+1 234 567 8902',
-      role: 'client',
-      totalBookings: 5,
-      lastVisit: '2026-01-20',
-      totalSpent: 180,
-    },
-    {
-      id: '4',
-      email: 'sarah.williams@example.com',
-      firstName: 'Sarah',
-      lastName: 'Williams',
-      phone: '+1 234 567 8903',
-      role: 'client',
-      totalBookings: 15,
-      lastVisit: '2026-01-30',
-      totalSpent: 620,
-    },
-  ];
-
   const {
-    data: clients = mockClients,
+    data: clientsResponse,
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => api.getClients(),
-    placeholderData: mockClients,
+    queryKey: ['clients', searchQuery],
+    queryFn: () => api.getClients({ search: searchQuery || undefined }),
   });
 
-  const filteredClients = clients.filter((client: Client) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      client.firstName.toLowerCase().includes(searchLower) ||
-      client.lastName.toLowerCase().includes(searchLower) ||
-      client.email.toLowerCase().includes(searchLower) ||
-      client.phone?.toLowerCase().includes(searchLower)
-    );
-  });
+  const clients: Client[] = clientsResponse?.data || [];
+
+  // Client-side filtering is now done server-side via search param
+  const filteredClients = clients;
 
   const handleClientPress = (client: Client) => {
     setSelectedClient(client);
     setIsDetailModalVisible(true);
+  };
+
+  const getInitials = (client: Client) => {
+    const first = client.first_name || client.firstName || '';
+    const last = client.last_name || client.lastName || '';
+    return `${first[0] || ''}${last[0] || ''}`.toUpperCase();
+  };
+
+  const getFullName = (client: Client) => {
+    if (client.full_name) return client.full_name;
+    const first = client.first_name || client.firstName || '';
+    const last = client.last_name || client.lastName || '';
+    return `${first} ${last}`.trim();
   };
 
   const renderClientItem = ({ item }: { item: Client }) => (
@@ -109,25 +71,25 @@ export function ClientsScreen() {
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {item.firstName[0]}{item.lastName[0]}
+            {getInitials(item)}
           </Text>
         </View>
       </View>
       <View style={styles.clientInfo}>
         <Text style={styles.clientName}>
-          {item.firstName} {item.lastName}
+          {getFullName(item)}
         </Text>
         <Text style={styles.clientEmail}>{item.email}</Text>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Icon name="calendar-outline" size={14} color="#6b7280" />
-            <Text style={styles.statText}>{item.totalBookings} bookings</Text>
+            <Text style={styles.statText}>{item.total_bookings || 0} bookings</Text>
           </View>
-          {item.lastVisit && (
+          {item.last_booking_at && (
             <View style={styles.statItem}>
               <Icon name="time-outline" size={14} color="#6b7280" />
               <Text style={styles.statText}>
-                Last: {format(new Date(item.lastVisit), 'MMM d')}
+                Last: {format(new Date(item.last_booking_at), 'MMM d')}
               </Text>
             </View>
           )}
@@ -182,8 +144,8 @@ export function ClientsScreen() {
         <View style={styles.statCard}>
           <Text style={styles.statCardValue}>
             {clients.filter((c: Client) => {
-              if (!c.lastVisit) return false;
-              const lastVisit = new Date(c.lastVisit);
+              if (!c.last_booking_at) return false;
+              const lastVisit = new Date(c.last_booking_at);
               const thirtyDaysAgo = new Date();
               thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
               return lastVisit >= thirtyDaysAgo;
@@ -226,11 +188,11 @@ export function ClientsScreen() {
               <View style={styles.profileSection}>
                 <View style={styles.largeAvatar}>
                   <Text style={styles.largeAvatarText}>
-                    {selectedClient.firstName[0]}{selectedClient.lastName[0]}
+                    {getInitials(selectedClient)}
                   </Text>
                 </View>
                 <Text style={styles.profileName}>
-                  {selectedClient.firstName} {selectedClient.lastName}
+                  {getFullName(selectedClient)}
                 </Text>
                 <Text style={styles.profileEmail}>{selectedClient.email}</Text>
               </View>
@@ -254,20 +216,20 @@ export function ClientsScreen() {
                 <View style={styles.statsGrid}>
                   <View style={styles.statsGridItem}>
                     <Text style={styles.statsGridValue}>
-                      {selectedClient.totalBookings || 0}
+                      {selectedClient.total_bookings || 0}
                     </Text>
                     <Text style={styles.statsGridLabel}>Total Bookings</Text>
                   </View>
                   <View style={styles.statsGridItem}>
                     <Text style={styles.statsGridValue}>
-                      ${selectedClient.totalSpent || 0}
+                      ${selectedClient.total_spent || 0}
                     </Text>
                     <Text style={styles.statsGridLabel}>Total Spent</Text>
                   </View>
                   <View style={styles.statsGridItem}>
                     <Text style={styles.statsGridValue}>
-                      {selectedClient.lastVisit
-                        ? format(new Date(selectedClient.lastVisit), 'MMM d')
+                      {selectedClient.last_booking_at
+                        ? format(new Date(selectedClient.last_booking_at), 'MMM d')
                         : 'N/A'}
                     </Text>
                     <Text style={styles.statsGridLabel}>Last Visit</Text>

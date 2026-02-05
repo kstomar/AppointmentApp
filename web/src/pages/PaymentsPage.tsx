@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { CreditCard, Search, MoreHorizontal, Eye, RefreshCw, Download, DollarSign, TrendingUp, AlertCircle } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -14,22 +15,13 @@ import { DataTable } from '../components/ui/data-table';
 import { LoadingState } from '../components/ui/loading-state';
 import { ErrorState } from '../components/ui/error-state';
 import { EmptyState } from '../components/ui/empty-state';
+import api from '../services/api';
+import type { Payment } from '../types';
 
-interface Payment {
-  id: string;
-  booking_id?: string;
+interface PaymentDisplay extends Payment {
   client_name: string;
   client_email: string;
   service_name: string;
-  amount: string;
-  amount_cents: number;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  payment_method: string;
-  card_last_four?: string;
-  card_brand?: string;
-  provider: 'stripe' | 'razorpay';
-  created_at: string;
-  paid_at?: string;
 }
 
 const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -42,91 +34,32 @@ const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'ou
 export function PaymentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentDisplay | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isRefundOpen, setIsRefundOpen] = useState(false);
+  const [refundReason, setRefundReason] = useState('');
+  const queryClient = useQueryClient();
 
-  // Mock data for payments
-  const mockPayments: Payment[] = [
-    {
-      id: '1',
-      booking_id: 'b1',
-      client_name: 'John Doe',
-      client_email: 'john@example.com',
-      service_name: 'Haircut',
-      amount: '$35.00',
-      amount_cents: 3500,
-      status: 'completed',
-      payment_method: 'card',
-      card_last_four: '4242',
-      card_brand: 'Visa',
-      provider: 'stripe',
-      created_at: '2024-02-01T10:00:00Z',
-      paid_at: '2024-02-01T10:00:05Z',
-    },
-    {
-      id: '2',
-      booking_id: 'b2',
-      client_name: 'Jane Smith',
-      client_email: 'jane@example.com',
-      service_name: 'Hair Coloring',
-      amount: '$120.00',
-      amount_cents: 12000,
-      status: 'completed',
-      payment_method: 'card',
-      card_last_four: '1234',
-      card_brand: 'Mastercard',
-      provider: 'stripe',
-      created_at: '2024-02-01T14:00:00Z',
-      paid_at: '2024-02-01T14:00:03Z',
-    },
-    {
-      id: '3',
-      booking_id: 'b3',
-      client_name: 'Bob Wilson',
-      client_email: 'bob@example.com',
-      service_name: 'Group Yoga Class',
-      amount: '$25.00',
-      amount_cents: 2500,
-      status: 'pending',
-      payment_method: 'card',
-      provider: 'razorpay',
-      created_at: '2024-02-02T09:00:00Z',
-    },
-    {
-      id: '4',
-      booking_id: 'b4',
-      client_name: 'Alice Brown',
-      client_email: 'alice@example.com',
-      service_name: 'Haircut',
-      amount: '$35.00',
-      amount_cents: 3500,
-      status: 'refunded',
-      payment_method: 'card',
-      card_last_four: '5678',
-      card_brand: 'Visa',
-      provider: 'stripe',
-      created_at: '2024-01-28T11:00:00Z',
-      paid_at: '2024-01-28T11:00:02Z',
-    },
-    {
-      id: '5',
-      booking_id: 'b5',
-      client_name: 'Charlie Davis',
-      client_email: 'charlie@example.com',
-      service_name: 'Consultation',
-      amount: '$50.00',
-      amount_cents: 5000,
-      status: 'failed',
-      payment_method: 'card',
-      provider: 'stripe',
-      created_at: '2024-02-01T16:00:00Z',
-    },
-  ];
+  const { data: paymentsResponse, isLoading, error, refetch } = useQuery({
+    queryKey: ['payments', statusFilter !== 'all' ? statusFilter : undefined],
+    queryFn: () => api.getPayments({ status: statusFilter !== 'all' ? statusFilter : undefined }),
+  });
 
-  const payments = mockPayments;
-  const isLoading = false;
-  const error = null;
+  const payments: PaymentDisplay[] = (paymentsResponse?.data || []).map((p: Payment) => ({
+    ...p,
+    client_name: p.booking?.client?.full_name || p.booking?.client?.first_name || 'Unknown',
+    client_email: p.booking?.client?.email || '',
+    service_name: p.booking?.service?.name || 'Unknown Service',
+  }));
+
+  const refundMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => api.refundPayment(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      setIsRefundOpen(false);
+      setRefundReason('');
+    },
+  });
 
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch = !searchQuery || 
@@ -260,7 +193,7 @@ export function PaymentsPage() {
   }
 
   if (error) {
-    return <ErrorState />;
+    return <ErrorState onRetry={() => refetch()} />;
   }
 
   return (
@@ -441,8 +374,16 @@ export function PaymentsPage() {
             <Button variant="outline" onClick={() => setIsRefundOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive">
-              Confirm Refund
+            <Button 
+              variant="destructive"
+              disabled={refundMutation.isPending}
+              onClick={() => {
+                if (selectedPayment) {
+                  refundMutation.mutate({ id: selectedPayment.id, reason: refundReason });
+                }
+              }}
+            >
+              {refundMutation.isPending ? 'Processing...' : 'Confirm Refund'}
             </Button>
           </DialogFooter>
         </DialogContent>

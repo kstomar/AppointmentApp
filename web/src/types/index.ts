@@ -194,3 +194,91 @@ export interface BookingFormData {
   notes?: string;
   intake_responses?: Record<string, unknown>;
 }
+
+export interface Client {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  phone?: string;
+  avatar_url?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  total_bookings: number;
+  last_booking_at?: string;
+  total_spent?: string;
+}
+
+export interface Payment {
+  id: string;
+  booking_id?: string;
+  user_id?: string;
+  business_id: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  provider: 'stripe' | 'razorpay';
+  payment_method?: string;
+  amount: string;
+  amount_cents: number;
+  refunded_amount?: string;
+  refunded_amount_cents?: number;
+  currency: string;
+  provider_payment_id?: string;
+  card_last_four?: string;
+  card_brand?: string;
+  receipt_url?: string;
+  refund_reason?: string;
+  created_at: string;
+  paid_at?: string;
+  refunded_at?: string;
+  booking?: {
+    id: string;
+    confirmation_code: string;
+    service_name: string;
+    client_name: string;
+    client_email: string;
+  };
+}
+
+export interface ReportStats {
+  stats: Array<{
+    label: string;
+    value: string;
+    change: string;
+    trend: 'up' | 'down';
+  }>;
+  bookings_by_day: Array<{
+    date: string;
+    bookings: number;
+    revenue: number;
+  }>;
+  bookings_by_service: Array<{
+    name: string;
+    value: number;
+  }>;
+  bookings_by_status: Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>;
+  revenue_by_month: Array<{
+    month: string;
+    revenue: number;
+  }>;
+  top_staff: Array<{
+    name: string;
+    bookings: number;
+    revenue: number;
+  }>;
+  peak_hours: Array<{
+    time: string;
+    bookings: number;
+    percentage: number;
+  }>;
+  booking_sources: Array<{
+    source: string;
+    count: number;
+    percentage: number;
+  }>;
+}

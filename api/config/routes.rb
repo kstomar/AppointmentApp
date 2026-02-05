@@ -38,6 +38,15 @@ Rails.application.routes.draw do
         get 'availability', to: 'availability#index'
       end
 
+      # Clients
+      resources :clients, only: [:index, :show, :create, :update, :destroy]
+
+      # Reports
+      get 'reports/dashboard', to: 'reports#dashboard'
+      get 'reports/bookings', to: 'reports#bookings'
+      get 'reports/revenue', to: 'reports#revenue'
+      get 'reports/staff_performance', to: 'reports#staff_performance'
+
       # Bookings
       resources :bookings do
         member do

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Calendar, Mail } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -18,6 +19,8 @@ import { DataTable } from '../components/ui/data-table';
 import { LoadingState } from '../components/ui/loading-state';
 import { ErrorState } from '../components/ui/error-state';
 import { EmptyState } from '../components/ui/empty-state';
+import api from '../services/api';
+import { useBusinessStore } from '../stores/businessStore';
 import type { StaffMember } from '../types';
 
 const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -28,96 +31,29 @@ export function StaffPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { currentBusiness, fetchBusinesses } = useBusinessStore();
 
-  // Mock data for staff
-  const mockStaff: StaffMember[] = [
-    {
-      id: '1',
-      business_id: '1',
-      user: {
-        id: 'u1',
-        name: 'Sarah Johnson',
-        email: 'sarah@example.com',
-        avatar_url: '',
-      },
-      title: 'Senior Stylist',
-      bio: 'Expert in hair coloring and styling with 10 years of experience.',
-      status: 'active',
-      role: 'staff',
-      skills: ['Hair Coloring', 'Styling', 'Cutting'],
-      is_bookable: true,
-      accepts_new_clients: true,
-      max_daily_bookings: 8,
-      services: [
-        { id: '1', name: 'Haircut' },
-        { id: '2', name: 'Hair Coloring' },
-      ],
-    },
-    {
-      id: '2',
-      business_id: '1',
-      user: {
-        id: 'u2',
-        name: 'Mike Chen',
-        email: 'mike@example.com',
-        avatar_url: '',
-      },
-      title: 'Barber',
-      bio: 'Specializing in mens cuts and beard grooming.',
-      status: 'active',
-      role: 'staff',
-      skills: ['Mens Cuts', 'Beard Grooming', 'Shaving'],
-      is_bookable: true,
-      accepts_new_clients: true,
-      max_daily_bookings: 10,
-      services: [
-        { id: '1', name: 'Haircut' },
-        { id: '3', name: 'Consultation' },
-      ],
-    },
-    {
-      id: '3',
-      business_id: '1',
-      user: {
-        id: 'u3',
-        name: 'Emily Davis',
-        email: 'emily@example.com',
-        avatar_url: '',
-      },
-      title: 'Yoga Instructor',
-      bio: 'Certified yoga instructor with focus on mindfulness.',
-      status: 'active',
-      role: 'staff',
-      skills: ['Yoga', 'Meditation', 'Wellness'],
-      is_bookable: true,
-      accepts_new_clients: true,
-      services: [
-        { id: '4', name: 'Group Yoga Class' },
-      ],
-    },
-    {
-      id: '4',
-      business_id: '1',
-      user: {
-        id: 'u4',
-        name: 'Alex Thompson',
-        email: 'alex@example.com',
-        avatar_url: '',
-      },
-      title: 'Front Desk',
-      bio: 'Managing appointments and customer service.',
-      status: 'active',
-      role: 'front_desk',
-      skills: ['Customer Service', 'Scheduling'],
-      is_bookable: false,
-      accepts_new_clients: false,
-      services: [],
-    },
-  ];
+  useEffect(() => {
+    if (!currentBusiness) {
+      fetchBusinesses();
+    }
+  }, [currentBusiness, fetchBusinesses]);
 
-  const staff = mockStaff;
-  const isLoading = false;
-  const error = null;
+  const businessId = currentBusiness?.id || '';
+
+  const { data: staff = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['staff', businessId],
+    queryFn: () => api.getStaffMembers(businessId),
+    enabled: !!businessId,
+  });
+
+  const deleteStaffMutation = useMutation({
+    mutationFn: (staffId: string) => api.deleteStaffMember(businessId, staffId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', businessId] });
+    },
+  });
 
   const filteredStaff = staff.filter((member) => {
     if (!searchQuery) return true;
@@ -228,7 +164,14 @@ export function StaffPage() {
               View Schedule
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive"
+              onClick={() => {
+                if (confirm('Are you sure you want to remove this staff member?')) {
+                  deleteStaffMutation.mutate(row.original.id);
+                }
+              }}
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Remove Staff
             </DropdownMenuItem>
@@ -240,8 +183,8 @@ export function StaffPage() {
 
   const stats = [
     { label: 'Total Staff', value: staff.length },
-    { label: 'Bookable Staff', value: staff.filter(s => s.is_bookable).length },
-    { label: 'Accepting New Clients', value: staff.filter(s => s.accepts_new_clients).length },
+    { label: 'Bookable Staff', value: staff.filter((s: StaffMember) => s.is_bookable).length },
+    { label: 'Accepting New Clients', value: staff.filter((s: StaffMember) => s.accepts_new_clients).length },
   ];
 
   if (isLoading) {
@@ -249,7 +192,7 @@ export function StaffPage() {
   }
 
   if (error) {
-    return <ErrorState />;
+    return <ErrorState onRetry={() => refetch()} />;
   }
 
   return (

@@ -82,32 +82,14 @@ export function BookingsPage() {
   });
 
   const completeMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/v1/bookings/${id}/complete`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.json();
-    },
+    mutationFn: (id: string) => api.completeBooking(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
   });
 
   const noShowMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/v1/bookings/${id}/no_show`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.json();
-    },
+    mutationFn: (id: string) => api.noShowBooking(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
