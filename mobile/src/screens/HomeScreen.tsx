@@ -123,11 +123,66 @@ export function HomeScreen({ navigation }: any) {
             </View>
             <Text style={styles.actionText}>Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Settings')}
+          >
             <View style={[styles.actionIcon, { backgroundColor: '#fce7f3' }]}>
-              <Icon name="help-circle-outline" size={24} color="#ec4899" />
+              <Icon name="settings-outline" size={24} color="#ec4899" />
             </View>
-            <Text style={styles.actionText}>Help</Text>
+            <Text style={styles.actionText}>Settings</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Business Management Section */}
+      <View style={styles.quickActions}>
+        <Text style={styles.sectionTitle}>Business Management</Text>
+        <View style={styles.actionGrid}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Clients')}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: '#e0e7ff' }]}>
+              <Icon name="people-outline" size={24} color="#6366f1" />
+            </View>
+            <Text style={styles.actionText}>Clients</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Services')}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: '#d1fae5' }]}>
+              <Icon name="briefcase-outline" size={24} color="#10b981" />
+            </View>
+            <Text style={styles.actionText}>Services</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Staff')}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: '#fef3c7' }]}>
+              <Icon name="people-circle-outline" size={24} color="#f59e0b" />
+            </View>
+            <Text style={styles.actionText}>Staff</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Payments')}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: '#fce7f3' }]}>
+              <Icon name="card-outline" size={24} color="#ec4899" />
+            </View>
+            <Text style={styles.actionText}>Payments</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Reports')}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: '#dbeafe' }]}>
+              <Icon name="bar-chart-outline" size={24} color="#3b82f6" />
+            </View>
+            <Text style={styles.actionText}>Reports</Text>
           </TouchableOpacity>
         </View>
       </View>

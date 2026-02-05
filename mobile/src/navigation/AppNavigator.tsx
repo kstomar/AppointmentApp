@@ -20,6 +20,14 @@ import { BookingDetailScreen } from '../screens/BookingDetailScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
+// Business Management Screens
+import { ClientsScreen } from '../screens/ClientsScreen';
+import { ServicesScreen } from '../screens/ServicesScreen';
+import { StaffScreen } from '../screens/StaffScreen';
+import { PaymentsScreen } from '../screens/PaymentsScreen';
+import { ReportsScreen } from '../screens/ReportsScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+
 // Booking Flow Screens
 import { SelectServiceScreen } from '../screens/booking/SelectServiceScreen';
 import { SelectStaffScreen } from '../screens/booking/SelectStaffScreen';
@@ -41,6 +49,13 @@ export type RootStackParamList = {
   ClientInfo: { businessSlug: string };
   BookingConfirmation: { bookingId: string };
   BookingDetail: { bookingId: string };
+  // Business Management Screens
+  Clients: undefined;
+  Services: undefined;
+  Staff: undefined;
+  Payments: undefined;
+  Reports: undefined;
+  Settings: undefined;
 };
 
 export type MainTabParamList = {
@@ -148,6 +163,37 @@ export function AppNavigator() {
               name="BookingDetail"
               component={BookingDetailScreen}
               options={{ headerShown: true, title: 'Booking Details' }}
+            />
+            {/* Business Management Screens */}
+            <Stack.Screen
+              name="Clients"
+              component={ClientsScreen}
+              options={{ headerShown: true, title: 'Clients' }}
+            />
+            <Stack.Screen
+              name="Services"
+              component={ServicesScreen}
+              options={{ headerShown: true, title: 'Services' }}
+            />
+            <Stack.Screen
+              name="Staff"
+              component={StaffScreen}
+              options={{ headerShown: true, title: 'Staff' }}
+            />
+            <Stack.Screen
+              name="Payments"
+              component={PaymentsScreen}
+              options={{ headerShown: true, title: 'Payments' }}
+            />
+            <Stack.Screen
+              name="Reports"
+              component={ReportsScreen}
+              options={{ headerShown: true, title: 'Reports' }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ headerShown: true, title: 'Settings' }}
             />
           </>
         )}
