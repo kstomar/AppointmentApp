@@ -1,0 +1,26 @@
+{
+  "name": "appointment-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "mobile"
+  ],
+  "scripts": {
+    "lint:web": "npm run lint --workspace=web",
+    "lint:mobile": "npm run lint --workspace=mobile",
+    "lint": "npm run lint:web && npm run lint:mobile",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "build:web": "npm run build --workspace=web",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:api": "cd api && bundle exec rails server -p 3000 -b 0.0.0.0",
+    "dev": "./start-dev.sh"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

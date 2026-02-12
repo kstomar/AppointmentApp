@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+coverage/
+vendor/
+api/log/
+api/tmp/
+api/storage/
+*.lock
+package-lock.json
+Gemfile.lock

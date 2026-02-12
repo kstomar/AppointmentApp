@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: api_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/api_development
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./api:/rails
+      - api_bundle:/usr/local/bundle
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://localhost:3000/api/v1
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+
+  sidekiq:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    command: bundle exec sidekiq
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/api_development
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./api:/rails
+      - api_bundle:/usr/local/bundle
+
+volumes:
+  postgres_data:
+  redis_data:
+  api_bundle:
