@@ -56,11 +56,9 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.3.8"
           bundler-cache: true
           working-directory: api
-        env:
-          BUNDLE_GEMFILE: ${{ github.workspace }}/api/Gemfile
 
       - run: bundle exec rubocop --parallel
         continue-on-error: true
@@ -103,11 +101,9 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.3.8"
           bundler-cache: true
           working-directory: api
-        env:
-          BUNDLE_GEMFILE: ${{ github.workspace }}/api/Gemfile
 
       - run: bundle exec rails db:create db:schema:load
         continue-on-error: true
